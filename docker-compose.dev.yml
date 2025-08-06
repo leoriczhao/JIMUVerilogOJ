@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # 主后端服务 - 开发环境覆盖
+  backend:
+    env_file:
+      - .env.dev
+    environment:
+      GIN_MODE: debug
+    volumes:
+      - ./backend:/app  # 开发时挂载源码，支持热重载
+
+  # 判题服务 - 开发环境覆盖
+  judge:
+    env_file:
+      - .env.dev
+
+  # PostgreSQL - 开发环境
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: password  # 开发环境使用简单密码
+
+  # Redis - 开发环境（无密码）
+  redis:
+    command: redis-server --appendonly yes
+
+  # 前端服务 - 开发环境
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.dev.Dockerfile
+    container_name: verilog_oj_frontend_dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app  # 开发时挂载源码，支持热重载
+    networks:
+      - oj_network 

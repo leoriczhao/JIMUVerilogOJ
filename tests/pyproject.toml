@@ -1,0 +1,12 @@
+[project]
+name = "verilog-oj-tests"
+version = "0.1.0"
+description = "Verilog OJ API 测试脚本"
+dependencies = [
+    "requests>=2.31.0",
+    "colorama>=0.4.6",
+]
+requires-python = ">=3.8"
+
+[tool.uv]
+dev-dependencies = [] 
