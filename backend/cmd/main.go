@@ -49,7 +49,7 @@ func main() {
 
 	// 添加中间件
 	r.Use(middleware.CORS())
-	r.Use(middleware.APILogger())     // 使用文件日志中间件
+	r.Use(middleware.APILogger()) // 使用文件日志中间件
 	r.Use(middleware.Recovery())
 	r.Use(middleware.APIRateLimit()) // 添加API速率限制
 
@@ -64,6 +64,14 @@ func main() {
 	// API路由组
 	v1 := r.Group("/api/v1")
 	{
+		// 管理端路由（需要管理员权限）
+		admin := v1.Group("/admin")
+		admin.Use(middleware.AuthRequired(), middleware.AdminOnly())
+		{
+			admin.GET("/whoami", app.Handlers.AdminHandler.WhoAmI)
+			admin.GET("/stats", app.Handlers.AdminHandler.Stats)
+		}
+
 		// 用户相关路由
 		users := v1.Group("/users")
 		{
