@@ -86,6 +86,16 @@ services:
       - oj_network
     restart: unless-stopped
 
+  # 管理后台前端（生产镜像，内部由顶层 Nginx 反代，不直接暴露宿主端口）
+  admin-frontend:
+    build:
+      context: .
+      dockerfile: docker/admin-frontend.Dockerfile
+    container_name: verilog_oj_admin_frontend
+    networks:
+      - oj_network
+    restart: unless-stopped
+
   # Nginx 反向代理
   nginx:
     image: nginx:alpine

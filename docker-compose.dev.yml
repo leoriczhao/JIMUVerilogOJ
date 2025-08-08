@@ -36,3 +36,21 @@ services:
       - ./frontend:/app  # 开发时挂载源码，支持热重载
     networks:
       - oj_network 
+
+  # 管理后台前端 - 开发环境
+  admin-frontend:
+    build:
+      context: .
+      dockerfile: docker/admin-frontend.dev.Dockerfile
+    container_name: verilog_oj_admin_frontend_dev
+    ports:
+      - "5174:5174"
+    volumes:
+      - ./admin-frontend:/app  # 开发时挂载源码，支持热重载
+    networks:
+      - oj_network
+
+  # Nginx - 开发环境覆盖：使用 dev 专用配置（代理到5173/5174）
+  nginx:
+    volumes:
+      - ./docker/nginx.dev.conf:/etc/nginx/nginx.conf:ro

@@ -67,3 +67,15 @@ services:
         reservations:
           cpus: '0.25'
           memory: 128M 
+
+  # 管理后台前端 - 生产环境覆盖
+  admin-frontend:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
