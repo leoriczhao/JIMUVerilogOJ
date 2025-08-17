@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"time"
+	"verilog-oj/backend/internal/config"
 	"verilog-oj/backend/internal/domain"
 	"verilog-oj/backend/internal/dto"
 
@@ -37,8 +38,8 @@ func NewUserHandler(userService interface{}) *UserHandler {
 // LoginResponse = dto.UserLoginResponse
 // UpdateProfileRequest = dto.UserUpdateProfileRequest
 
-// JWT密钥，实际应该从环境变量读取
-var jwtSecret = []byte("verilog-oj-secret-key")
+// 从配置读取JWT密钥
+var jwtSecret = []byte(config.LoadConfig().JWT.Secret)
 
 // Register 用户注册
 func (h *UserHandler) Register(c *gin.Context) {

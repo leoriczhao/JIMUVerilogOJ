@@ -4,12 +4,14 @@ import (
 	"net/http"
 	"strings"
 
+	"verilog-oj/backend/internal/config"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// JWT密钥，实际应该从环境变量读取
-var jwtSecret = []byte("verilog-oj-secret-key")
+// 从配置读取JWT密钥
+var jwtSecret = []byte(config.LoadConfig().JWT.Secret)
 
 // AuthRequired JWT认证中间件
 func AuthRequired() gin.HandlerFunc {
