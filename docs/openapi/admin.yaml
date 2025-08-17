@@ -10,7 +10,7 @@ paths:
     get:
       summary: 当前管理员信息
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       responses:
         '200':
           description: OK
@@ -28,7 +28,7 @@ paths:
     get:
       summary: 系统统计
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       responses:
         '200':
           description: OK
@@ -45,7 +45,7 @@ paths:
         '403': { description: 无权限 }
 components:
   securitySchemes:
-    bearerAuth:
+    BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
