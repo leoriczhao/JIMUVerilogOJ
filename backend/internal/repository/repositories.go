@@ -1,8 +1,9 @@
 package repository
 
 import (
-	"gorm.io/gorm"
 	"verilog-oj/backend/internal/services"
+
+	"gorm.io/gorm"
 )
 
 // Repositories 包含所有Repository的结构体
@@ -12,6 +13,7 @@ type Repositories struct {
 	SubmissionRepository services.SubmissionRepository
 	ForumRepository      services.ForumRepository
 	NewsRepository       services.NewsRepository
+	AdminRepository      services.AdminRepository
 }
 
 // NewRepositories 创建Repositories实例
@@ -22,5 +24,6 @@ func NewRepositories(db *gorm.DB) *Repositories {
 		SubmissionRepository: NewSubmissionRepository(db),
 		ForumRepository:      NewForumRepository(db),
 		NewsRepository:       NewNewsRepository(db),
+		AdminRepository:      NewAdminRepository(db),
 	}
 }

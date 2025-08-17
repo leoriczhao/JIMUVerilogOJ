@@ -5,7 +5,6 @@ package handlers
 
 import (
 	"github.com/google/wire"
-	"verilog-oj/backend/internal/services"
 )
 
 // HandlerSet 提供所有Handler的Wire集合
@@ -24,6 +23,9 @@ var HandlerSet = wire.NewSet(
 
 	// News Handler
 	NewNewsHandler,
+
+	// Admin Handler
+	NewAdminHandler,
 
 	// Handlers构造函数
 	NewHandlers,

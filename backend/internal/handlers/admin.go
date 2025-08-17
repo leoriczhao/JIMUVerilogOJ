@@ -2,14 +2,19 @@ package handlers
 
 import (
 	"net/http"
+	"verilog-oj/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
 
 // AdminHandler 处理管理端接口
-type AdminHandler struct{}
+type AdminHandler struct {
+	adminService *services.AdminService
+}
 
-func NewAdminHandler() *AdminHandler { return &AdminHandler{} }
+func NewAdminHandler(adminService *services.AdminService) *AdminHandler {
+	return &AdminHandler{adminService: adminService}
+}
 
 // WhoAmI 返回当前管理员的基础信息
 func (h *AdminHandler) WhoAmI(c *gin.Context) {
@@ -26,11 +31,10 @@ func (h *AdminHandler) WhoAmI(c *gin.Context) {
 
 // Stats 系统基础统计（占位）
 func (h *AdminHandler) Stats(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"users":         0,
-		"problems":      0,
-		"submissions":   0,
-		"judges_online": 1,
-	})
+	stats, err := h.adminService.GetSystemStats()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal_error", "message": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, stats)
 }
-
