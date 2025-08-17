@@ -24,14 +24,14 @@ func DefaultLogConfig() *LogConfig {
 		LogDir:      "/root/logs",
 		LogFile:     "api.log",
 		MaxSize:     100 * 1024 * 1024, // 100MB
-		MaxAge:      7,                  // 7天
+		MaxAge:      7,                 // 7天
 		RotateDaily: true,
 	}
 }
 
 // FileLogger 文件日志记录器
 type FileLogger struct {
-	config   *LogConfig
+	config      *LogConfig
 	currentFile *os.File
 	currentDate string
 }

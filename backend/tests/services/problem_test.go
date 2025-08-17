@@ -248,13 +248,13 @@ func TestProblemService_GetProblem(t *testing.T) {
 // TestProblemService_ListProblems 测试获取题目列表
 func TestProblemService_ListProblems(t *testing.T) {
 	tests := []struct {
-		name         string
-		page         int
-		limit        int
-		filters      map[string]interface{}
-		mockFn       func(*MockProblemRepository)
-		wantErr      bool
-		expectedPage int
+		name          string
+		page          int
+		limit         int
+		filters       map[string]interface{}
+		mockFn        func(*MockProblemRepository)
+		wantErr       bool
+		expectedPage  int
 		expectedLimit int
 	}{
 		{
@@ -538,12 +538,12 @@ func TestProblemService_AddTestCase(t *testing.T) {
 // TestProblemService_UpdateProblemStats 测试更新题目统计
 func TestProblemService_UpdateProblemStats(t *testing.T) {
 	tests := []struct {
-		name               string
-		problemID          uint
-		submitIncrement    int
-		acceptedIncrement  int
-		mockFn             func(*MockProblemRepository)
-		wantErr            bool
+		name              string
+		problemID         uint
+		submitIncrement   int
+		acceptedIncrement int
+		mockFn            func(*MockProblemRepository)
+		wantErr           bool
 	}{
 		{
 			name:              "成功更新提交和通过统计",

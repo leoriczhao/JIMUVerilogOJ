@@ -9,13 +9,13 @@ import (
 func TestMain(m *testing.M) {
 	// 设置测试环境变量
 	setupTestEnv()
-	
+
 	// 运行测试
 	code := m.Run()
-	
+
 	// 清理测试环境
 	cleanupTestEnv()
-	
+
 	// 退出
 	os.Exit(code)
 }
@@ -25,7 +25,7 @@ func setupTestEnv() {
 	// 设置测试环境变量
 	os.Setenv("GIN_MODE", "test")
 	os.Setenv("LOG_LEVEL", "error")
-	
+
 	// 可以在这里设置测试数据库连接等
 	// 例如：os.Setenv("DB_HOST", "localhost")
 }

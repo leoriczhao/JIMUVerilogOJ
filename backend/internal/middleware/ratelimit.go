@@ -10,11 +10,11 @@ import (
 
 // TokenBucket 令牌桶结构
 type TokenBucket struct {
-	capacity    int64     // 桶容量
-	tokens      int64     // 当前令牌数
-	refillRate  int64     // 每秒补充令牌数
-	lastRefill  time.Time // 上次补充时间
-	mu          sync.Mutex
+	capacity   int64     // 桶容量
+	tokens     int64     // 当前令牌数
+	refillRate int64     // 每秒补充令牌数
+	lastRefill time.Time // 上次补充时间
+	mu         sync.Mutex
 }
 
 // NewTokenBucket 创建新的令牌桶
@@ -55,10 +55,10 @@ func (tb *TokenBucket) TryConsume() bool {
 
 // RateLimiter 速率限制器
 type RateLimiter struct {
-	buckets map[string]*TokenBucket
-	mu      sync.RWMutex
-	capacity    int64 // 桶容量
-	refillRate  int64 // 每秒补充令牌数
+	buckets    map[string]*TokenBucket
+	mu         sync.RWMutex
+	capacity   int64 // 桶容量
+	refillRate int64 // 每秒补充令牌数
 }
 
 // NewRateLimiter 创建新的速率限制器
@@ -101,8 +101,8 @@ func RateLimit(capacity, refillRate int64) gin.HandlerFunc {
 
 		if !bucket.TryConsume() {
 			c.JSON(http.StatusTooManyRequests, gin.H{
-				"error":   "rate_limit_exceeded",
-				"message": "请求过于频繁，请稍后再试",
+				"error":       "rate_limit_exceeded",
+				"message":     "请求过于频繁，请稍后再试",
 				"retry_after": "1s",
 			})
 			c.Abort()

@@ -47,12 +47,12 @@ type JWTConfig struct {
 
 // QueueConfig 消息队列配置
 type QueueConfig struct {
-	Type       string `yaml:"type"`        // redis, rabbitmq
-	Host       string `yaml:"host"`
-	Port       int    `yaml:"port"`
-	Username   string `yaml:"username"`
-	Password   string `yaml:"password"`
-	QueueName  string `yaml:"queue_name"`
+	Type      string `yaml:"type"` // redis, rabbitmq
+	Host      string `yaml:"host"`
+	Port      int    `yaml:"port"`
+	Username  string `yaml:"username"`
+	Password  string `yaml:"password"`
+	QueueName string `yaml:"queue_name"`
 }
 
 // LoadConfig 加载配置
@@ -107,4 +107,4 @@ func getEnvAsInt(key string, defaultValue int) int {
 		}
 	}
 	return defaultValue
-} 
+}

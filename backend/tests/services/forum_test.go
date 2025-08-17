@@ -745,16 +745,16 @@ func TestForumService_LikePost(t *testing.T) {
 
 			// 设置 Mock 期望
 			postIDPtr := &tt.postID
-			
+
 			// 首先验证用户是否存在
 			if tt.userID != 0 {
 				mockUserRepo.On("GetByID", tt.userID).Return(tt.mockUser, nil)
 			}
-			
+
 			// 如果用户存在，检查点赞状态
 			if tt.mockUser != nil {
 				mockForumRepo.On("CheckLikeExists", tt.userID, postIDPtr, (*uint)(nil)).Return(tt.isLiked, nil)
-				
+
 				// 根据点赞状态执行相应操作
 				if tt.isLiked {
 					// 取消点赞
@@ -859,16 +859,16 @@ func TestForumService_UnlikePost(t *testing.T) {
 
 			// 设置 Mock 期望
 			postIDPtr := &tt.postID
-			
+
 			// 首先验证用户是否存在
 			if tt.userID != 0 {
 				mockUserRepo.On("GetByID", tt.userID).Return(tt.mockUser, nil)
 			}
-			
+
 			// 如果用户存在，检查点赞状态
 			if tt.mockUser != nil {
 				mockForumRepo.On("CheckLikeExists", tt.userID, postIDPtr, (*uint)(nil)).Return(tt.isLiked, tt.likeError)
-				
+
 				// 如果CheckLikeExists没有错误，根据点赞状态执行相应操作
 				if tt.likeError == nil {
 					if tt.isLiked {

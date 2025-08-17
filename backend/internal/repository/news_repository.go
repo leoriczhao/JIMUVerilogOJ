@@ -27,12 +27,12 @@ func (r *NewsRepository) Create(news *domain.News) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// 更新ID和时间戳
 	news.ID = modelNews.ID
 	news.CreatedAt = modelNews.CreatedAt
 	news.UpdatedAt = modelNews.UpdatedAt
-	
+
 	return nil
 }
 
@@ -53,33 +53,33 @@ func (r *NewsRepository) GetByID(id uint) (*domain.News, error) {
 func (r *NewsRepository) List(page, limit int, filters map[string]interface{}) ([]domain.News, int64, error) {
 	var modelNewsList []models.News
 	var total int64
-	
+
 	query := r.db.Model(&models.News{})
-	
+
 	// 应用过滤条件
 	for key, value := range filters {
 		query = query.Where(key+" = ?", value)
 	}
-	
+
 	// 获取总数
 	err := query.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	
+
 	// 分页查询
 	offset := (page - 1) * limit
 	err = query.Offset(offset).Limit(limit).Order("is_featured DESC, created_at DESC").Find(&modelNewsList).Error
 	if err != nil {
 		return nil, 0, err
 	}
-	
+
 	// 转换为domain对象
 	newsList := make([]domain.News, len(modelNewsList))
 	for i, modelNews := range modelNewsList {
 		newsList[i] = *NewsModelToDomain(&modelNews)
 	}
-	
+
 	return newsList, total, nil
 }
 
@@ -90,10 +90,10 @@ func (r *NewsRepository) Update(news *domain.News) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// 更新时间戳
 	news.UpdatedAt = modelNews.UpdatedAt
-	
+
 	return nil
 }
 

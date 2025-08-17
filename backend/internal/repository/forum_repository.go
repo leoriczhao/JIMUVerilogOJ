@@ -42,14 +42,14 @@ func (r *ForumRepository) domainPostToModel(post *domain.ForumPost) *models.Foru
 		IsLocked:   post.IsLocked,
 		IsPublic:   post.IsPublic,
 	}
-	
+
 	// 只有在更新时才设置ID和时间戳
 	if post.ID != 0 {
 		modelPost.ID = post.ID
 		modelPost.CreatedAt = post.CreatedAt
 		modelPost.UpdatedAt = post.UpdatedAt
 	}
-	
+
 	return modelPost
 }
 
@@ -86,14 +86,14 @@ func (r *ForumRepository) domainReplyToModel(reply *domain.ForumReply) *models.F
 		ParentID:  reply.ParentID,
 		LikeCount: reply.LikeCount,
 	}
-	
+
 	// 只有在更新时才设置ID和时间戳
 	if reply.ID != 0 {
 		modelReply.ID = reply.ID
 		modelReply.CreatedAt = reply.CreatedAt
 		modelReply.UpdatedAt = reply.UpdatedAt
 	}
-	
+
 	return modelReply
 }
 

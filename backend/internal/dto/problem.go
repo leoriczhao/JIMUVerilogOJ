@@ -46,23 +46,23 @@ type TestCaseAddRequest struct {
 
 // ProblemResponse 题目响应
 type ProblemResponse struct {
-	ID           uint                `json:"id"`
-	Title        string              `json:"title"`
-	Description  string              `json:"description"`
-	InputDesc    string              `json:"input_desc"`
-	OutputDesc   string              `json:"output_desc"`
-	Difficulty   string              `json:"difficulty"`
-	Category     string              `json:"category"`
-	Tags         []string            `json:"tags"`
-	TimeLimit    int                 `json:"time_limit"`
-	MemoryLimit  int                 `json:"memory_limit"`
-	IsPublic     bool                `json:"is_public"`
-	AuthorID     uint                `json:"author_id"`
-	SubmitCount  int                 `json:"submit_count"`
-	AcceptCount  int                 `json:"accept_count"`
-	TestCases    []TestCaseResponse  `json:"test_cases,omitempty"`
-	CreatedAt    time.Time           `json:"created_at"`
-	UpdatedAt    time.Time           `json:"updated_at"`
+	ID          uint               `json:"id"`
+	Title       string             `json:"title"`
+	Description string             `json:"description"`
+	InputDesc   string             `json:"input_desc"`
+	OutputDesc  string             `json:"output_desc"`
+	Difficulty  string             `json:"difficulty"`
+	Category    string             `json:"category"`
+	Tags        []string           `json:"tags"`
+	TimeLimit   int                `json:"time_limit"`
+	MemoryLimit int                `json:"memory_limit"`
+	IsPublic    bool               `json:"is_public"`
+	AuthorID    uint               `json:"author_id"`
+	SubmitCount int                `json:"submit_count"`
+	AcceptCount int                `json:"accept_count"`
+	TestCases   []TestCaseResponse `json:"test_cases,omitempty"`
+	CreatedAt   time.Time          `json:"created_at"`
+	UpdatedAt   time.Time          `json:"updated_at"`
 }
 
 // ProblemListResponse 题目列表响应
