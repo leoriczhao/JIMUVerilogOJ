@@ -297,7 +297,7 @@ func (h *SubmissionHandler) DeleteSubmission(c *gin.Context) {
 		return
 	}
 
-	userRole, exists := c.Get("user_role")
+	userRole, exists := c.Get("role")
 	if !exists {
 		userRole = "student" // 默认角色
 	}
