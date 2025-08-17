@@ -24,7 +24,8 @@ class ForumTester(BaseAPITester):
             "username": self.generate_unique_name("forumtester"),
             "email": f"{self.generate_unique_name('test')}@example.com",
             "password": "password123",
-            "nickname": "论坛测试员"
+            "nickname": "论坛测试员",
+            "role": "admin"
         }
         
         # 注册用户
