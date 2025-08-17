@@ -30,4 +30,3 @@ func AdminOnly() gin.HandlerFunc {
 		c.Next()
 	}
 }
-
