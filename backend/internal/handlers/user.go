@@ -14,7 +14,7 @@ import (
 
 // UserService 接口定义
 type UserService interface {
-	CreateUser(username, email, password string) (*domain.User, error)
+	CreateUser(username, email, password, role string) (*domain.User, error)
 	GetUserByUsername(username string) (*domain.User, error)
 	GetUserByID(id uint) (*domain.User, error)
 	UpdateUser(user *domain.User) error
@@ -62,7 +62,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 	}
 
 	// 创建用户
-	user, err := h.userService.CreateUser(req.Username, req.Email, req.Password)
+	user, err := h.userService.CreateUser(req.Username, req.Email, req.Password, req.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "registration_failed",

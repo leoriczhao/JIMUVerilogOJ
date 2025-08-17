@@ -146,7 +146,7 @@ func TestUserService_CreateUser(t *testing.T) {
 			userService := services.NewUserService(mockRepo)
 
 			// 执行测试
-			user, err := userService.CreateUser(tt.username, tt.email, tt.password)
+			user, err := userService.CreateUser(tt.username, tt.email, tt.password, "student")
 
 			// 验证结果
 			if tt.expectedError != "" {
