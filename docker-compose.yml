@@ -1,17 +1,8 @@
-version: '3.8'
-
 services:
   # PostgreSQL 数据库
   postgres:
     image: postgres:15
     container_name: verilog_oj_db
-    environment:
-      POSTGRES_DB: verilog_oj
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    # 移除端口映射，只允许内部网络访问
-    # ports:
-    #   - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -22,9 +13,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: verilog_oj_redis
-    # 移除端口映射，只允许内部网络访问
-    # ports:
-    #   - "6380:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -42,6 +30,9 @@ services:
       - .env.dev  # 默认使用开发环境配置
     ports:
       - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
     networks:
       - oj_network
     restart: unless-stopped
@@ -70,9 +61,6 @@ services:
         reservations:
           cpus: '1.0'
           memory: 1G
-    # 移除端口映射，judge服务不暴露到公网
-    # ports:
-    #   - "8081:8081"  # 判题服务端口
 
   # 前端服务
   frontend:
