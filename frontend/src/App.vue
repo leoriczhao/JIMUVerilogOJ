@@ -23,7 +23,6 @@ import Footer from './components/Footer.vue'
 
 .main-content {
   flex: 1;
-  margin-top: 60px; /* 为固定导航栏留出空间 */
 }
 
 /* 全局样式重置 */

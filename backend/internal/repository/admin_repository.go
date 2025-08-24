@@ -34,3 +34,4 @@ func (r *AdminRepositoryImpl) CountSubmissions() (int64, error) {
 	err := r.db.Model(&models.Submission{}).Count(&count).Error
 	return count, err
 }
+
