@@ -1,0 +1,1124 @@
+openapi: 3.0.3
+info:
+  title: Verilog OJ API
+  description: Verilog在线判题系统API文档
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@verilog-oj.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: 开发环境
+  - url: https://api.verilog-oj.com/api/v1
+    description: 生产环境
+
+paths:
+  # 用户相关接口
+  /users/register:
+    post:
+      tags:
+        - 用户管理
+      summary: 用户注册
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/login:
+    post:
+      tags:
+        - 用户管理
+      summary: 用户登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: 用户名或密码错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/profile:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取个人信息
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - 用户管理
+      summary: 更新个人信息
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  # 题目相关接口
+  /problems:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目列表
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [Easy, Medium, Hard]
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemList'
+
+    post:
+      tags:
+        - 题目管理
+      summary: 创建题目
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProblemRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /problems/{id}:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /problems/{id}/testcases:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目测试用例
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  test_cases:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TestCase'
+
+    post:
+      tags:
+        - 题目管理
+      summary: 添加测试用例
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestCase'
+      responses:
+        '201':
+          description: 添加成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestCase'
+
+  /problems/{id}/submissions:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目提交记录
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionList'
+
+  # 提交相关接口
+  /submissions:
+    get:
+      tags:
+        - 提交管理
+      summary: 获取提交记录列表
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+        - name: problem_id
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionList'
+
+    post:
+      tags:
+        - 提交管理
+      summary: 提交代码
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubmissionRequest'
+      responses:
+        '201':
+          description: 提交成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+
+  /submissions/{id}:
+    get:
+      tags:
+        - 提交管理
+      summary: 获取提交详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Submission'
+
+    delete:
+      tags:
+        - 提交管理
+      summary: 删除提交
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /submissions/user:
+    get:
+      tags:
+        - 提交管理
+      summary: 获取用户提交记录
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionList'
+
+  /submissions/stats:
+    get:
+      tags:
+        - 提交管理
+      summary: 获取提交统计
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_submissions:
+                    type: integer
+                  accepted_submissions:
+                    type: integer
+                  acceptance_rate:
+                    type: number
+                  average_score:
+                    type: number
+                  solved_problems:
+                    type: integer
+
+  # 新闻相关接口
+  /news:
+    get:
+      tags:
+        - 新闻管理
+      summary: 获取新闻列表
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  news:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/News'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+    post:
+      tags:
+        - 新闻管理
+      summary: 创建新闻
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNewsRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  news:
+                    $ref: '#/components/schemas/News'
+
+  /news/{id}:
+    get:
+      tags:
+        - 新闻管理
+      summary: 获取新闻详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  news:
+                    $ref: '#/components/schemas/News'
+    put:
+      tags:
+        - 新闻管理
+      summary: 更新新闻
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNewsRequest'
+      responses:
+        '200':
+          description: 更新成功
+    delete:
+      tags:
+        - 新闻管理
+      summary: 删除新闻
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  # 论坛相关接口
+  /forum/posts:
+    get:
+      tags:
+        - 论坛管理
+      summary: 获取帖子列表
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ForumPost'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+    post:
+      tags:
+        - 论坛管理
+      summary: 创建帖子
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateForumPostRequest'
+      responses:
+        '201':
+          description: 创建成功
+
+  /forum/posts/{id}:
+    get:
+      tags:
+        - 论坛管理
+      summary: 获取帖子详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForumPost'
+    put:
+      tags:
+        - 论坛管理
+      summary: 更新帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateForumPostRequest'
+      responses:
+        '200':
+          description: 更新成功
+    delete:
+      tags:
+        - 论坛管理
+      summary: 删除帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /forum/posts/{id}/replies:
+    get:
+      tags:
+        - 论坛管理
+      summary: 获取帖子回复列表
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  replies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ForumReply'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  replies:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ForumReply'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  limit:
+                    type: integer
+
+    post:
+      tags:
+        - 论坛管理
+      summary: 创建回复
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReplyRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForumReply'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        nickname:
+          type: string
+        avatar:
+          type: string
+        school:
+          type: string
+        student_id:
+          type: string
+        role:
+          type: string
+          enum: [student, teacher, admin, super_admin]
+        solved:
+          type: integer
+        submitted:
+          type: integer
+        rating:
+          type: integer
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        last_login_at:
+          type: string
+          format: date-time
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 20
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        nickname:
+          type: string
+          maxLength: 50
+        school:
+          type: string
+          maxLength: 100
+        student_id:
+          type: string
+          maxLength: 20
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        expires_in:
+          type: integer
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+          maxLength: 50
+        avatar:
+          type: string
+        school:
+          type: string
+          maxLength: 100
+        student_id:
+          type: string
+          maxLength: 20
+
+    Problem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        input_desc:
+          type: string
+        output_desc:
+          type: string
+        difficulty:
+          type: string
+          enum: [Easy, Medium, Hard]
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        time_limit:
+          type: integer
+        memory_limit:
+          type: integer
+        submit_count:
+          type: integer
+        accepted_count:
+          type: integer
+        is_public:
+          type: boolean
+        author:
+          $ref: '#/components/schemas/User'
+        created_at:
+          type: string
+          format: date-time
+
+    ProblemList:
+      type: object
+      properties:
+        problems:
+          type: array
+          items:
+            $ref: '#/components/schemas/Problem'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    CreateProblemRequest:
+      type: object
+      required:
+        - title
+        - description
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        input_desc:
+          type: string
+        output_desc:
+          type: string
+        difficulty:
+          type: string
+          enum: [Easy, Medium, Hard]
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        time_limit:
+          type: integer
+          default: 1000
+        memory_limit:
+          type: integer
+          default: 128
+        test_cases:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCase'
+
+    TestCase:
+      type: object
+      properties:
+        input:
+          type: string
+        output:
+          type: string
+        is_sample:
+          type: boolean
+
+    Submission:
+      type: object
+      properties:
+        id:
+          type: integer
+        user:
+          $ref: '#/components/schemas/User'
+        problem:
+          $ref: '#/components/schemas/Problem'
+        code:
+          type: string
+        language:
+          type: string
+        status:
+          type: string
+        score:
+          type: integer
+        run_time:
+          type: integer
+        memory:
+          type: integer
+        error_message:
+          type: string
+        passed_tests:
+          type: integer
+        total_tests:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    SubmissionList:
+      type: object
+      properties:
+        submissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Submission'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    CreateSubmissionRequest:
+      type: object
+      required:
+        - problem_id
+        - code
+      properties:
+        problem_id:
+          type: integer
+        code:
+          type: string
+        language:
+          type: string
+          default: verilog
+
+    CreateNewsRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        is_published:
+          type: boolean
+          default: false
+
+    News:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        summary:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        is_published:
+          type: boolean
+        author:
+          $ref: '#/components/schemas/User'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UpdateNewsRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        is_published:
+          type: boolean
+
+    CreateForumPostRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+
+    UpdateForumPostRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+
+    ForumPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        tags:
+          type: string
+          description: JSON字符串格式的标签数组
+        user:
+          $ref: '#/components/schemas/User'
+        reply_count:
+          type: integer
+        view_count:
+          type: integer
+        like_count:
+          type: integer
+        is_sticky:
+          type: boolean
+        is_locked:
+          type: boolean
+        is_public:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ForumReply:
+      type: object
+      properties:
+        id:
+          type: integer
+        content:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        parent_id:
+          type: integer
+        post_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateReplyRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          minLength: 1
+        parent_id:
+          type: integer
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: integer

@@ -57,7 +57,40 @@ class ForumTester(BaseAPITester):
             self.log_error("获取论坛帖子列表失败")
             return False
         else:
-            self.log_success("获取论坛帖子列表成功")
+            # 验证响应格式
+            if "posts" not in response:
+                self.log_error("响应中缺少 'posts' 字段")
+                return False
+            
+            if "total" not in response:
+                self.log_error("响应中缺少 'total' 字段")
+                return False
+                
+            posts = response.get("posts", [])
+            total = response.get("total", 0)
+            
+            self.log_success(f"获取论坛帖子列表成功，共{total}个帖子，当前页{len(posts)}个")
+            
+            # 如果有帖子，验证帖子数据结构
+            if posts:
+                first_post = posts[0]
+                required_fields = ["id", "title", "content", "user", "category", "view_count", "reply_count"]
+                missing_fields = [field for field in required_fields if field not in first_post]
+                
+                if missing_fields:
+                    self.log_error(f"帖子数据缺少必要字段: {missing_fields}")
+                    return False
+                else:
+                    self.log_success("帖子数据结构完整")
+                    
+                # 验证用户信息
+                user = first_post.get("user", {})
+                if not user or "username" not in user:
+                    self.log_error("帖子中缺少用户信息或用户信息不完整")
+                    return False
+                else:
+                    self.log_success(f"帖子用户信息正常: {user.get('username')}")
+            
             return True
 
     def test_create_forum_post(self):
