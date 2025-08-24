@@ -43,8 +43,10 @@ func (h *ForumHandler) ListPosts(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "15"))
 	category := c.Query("category")
 
-	filters := map[string]interface{}{
-		"category": category,
+	// 构建过滤条件，只有非空值才添加过滤
+	filters := make(map[string]interface{})
+	if category != "" {
+		filters["category"] = category
 	}
 
 	posts, total, err := h.forumService.ListPosts(page, limit, filters)
@@ -52,6 +54,7 @@ func (h *ForumHandler) ListPosts(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list posts"})
 		return
 	}
+
 	// 转换为DTO响应
 	var postResponses []dto.ForumPostResponse
 	for _, post := range posts {

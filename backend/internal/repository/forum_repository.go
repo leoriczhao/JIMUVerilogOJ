@@ -60,7 +60,7 @@ func (r *ForumRepository) modelPostToDomain(post *models.ForumPost) *domain.Foru
 		json.Unmarshal([]byte(post.Tags), &tags)
 	}
 
-	return &domain.ForumPost{
+	domainPost := &domain.ForumPost{
 		ID:         post.ID,
 		Title:      post.Title,
 		Content:    post.Content,
@@ -76,6 +76,20 @@ func (r *ForumRepository) modelPostToDomain(post *models.ForumPost) *domain.Foru
 		CreatedAt:  post.CreatedAt,
 		UpdatedAt:  post.UpdatedAt,
 	}
+
+	// 处理关联的用户信息
+	if post.User.ID != 0 {
+		domainPost.User = &domain.User{
+			ID:       post.User.ID,
+			Username: post.User.Username,
+			Email:    post.User.Email,
+			Nickname: post.User.Nickname,
+			Avatar:   post.User.Avatar,
+			Role:     post.User.Role,
+		}
+	}
+
+	return domainPost
 }
 
 func (r *ForumRepository) domainReplyToModel(reply *domain.ForumReply) *models.ForumReply {

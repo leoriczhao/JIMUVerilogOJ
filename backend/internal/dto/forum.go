@@ -27,18 +27,20 @@ type ForumReplyCreateRequest struct {
 
 // ForumPostResponse 帖子响应
 type ForumPostResponse struct {
-	ID         uint      `json:"id"`
-	Title      string    `json:"title"`
-	Content    string    `json:"content"`
-	UserID     uint      `json:"user_id"`
-	Category   string    `json:"category"`
-	Tags       []string  `json:"tags"`
-	ViewCount  int       `json:"view_count"`
-	ReplyCount int       `json:"reply_count"`
-	IsLocked   bool      `json:"is_locked"`
-	IsSticky   bool      `json:"is_sticky"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	ID         uint         `json:"id"`
+	Title      string       `json:"title"`
+	Content    string       `json:"content"`
+	User       UserResponse `json:"user"` // 完整用户信息
+	Category   string       `json:"category"`
+	Tags       []string     `json:"tags"`
+	ViewCount  int          `json:"view_count"`
+	ReplyCount int          `json:"reply_count"`
+	LikeCount  int          `json:"like_count"`
+	IsLocked   bool         `json:"is_locked"`
+	IsSticky   bool         `json:"is_sticky"`
+	IsPublic   bool         `json:"is_public"`
+	CreatedAt  time.Time    `json:"created_at"`
+	UpdatedAt  time.Time    `json:"updated_at"`
 }
 
 // ForumPostListResponse 帖子列表响应

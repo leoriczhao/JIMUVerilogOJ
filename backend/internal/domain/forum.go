@@ -8,6 +8,7 @@ type ForumPost struct {
 	Title    string
 	Content  string
 	AuthorID uint
+	User     *User `json:"user,omitempty"` // 关联的用户信息
 
 	// 分类和标签
 	Category string
