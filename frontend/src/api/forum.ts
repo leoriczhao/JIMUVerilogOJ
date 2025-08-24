@@ -9,7 +9,10 @@ export interface ForumPost {
   user: any
   reply_count: number
   view_count: number
+  like_count: number
+  is_sticky: boolean
   is_locked: boolean
+  is_public: boolean
   created_at: string
   updated_at: string
 }
@@ -25,13 +28,16 @@ export interface ForumReply {
 }
 
 // 获取帖子列表
-export const getForumPosts = () => {
+export const getForumPosts = (params?: {
+  page?: number
+  limit?: number
+}) => {
   return api.get<{
     posts: ForumPost[]
     total: number
     page: number
     limit: number
-  }>('/forum/posts') as unknown as Promise<{
+  }>('/forum/posts', { params }) as unknown as Promise<{
     posts: ForumPost[]
     total: number
     page: number
