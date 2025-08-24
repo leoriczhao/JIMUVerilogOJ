@@ -77,6 +77,27 @@ func (s *NewsService) GetNewsList(page, limit int) ([]domain.News, int64, error)
 	return s.newsRepo.List(page, limit, filters)
 }
 
+// GetNewsListWithFilters 获取带过滤条件的新闻列表
+func (s *NewsService) GetNewsListWithFilters(page, limit int, filters map[string]interface{}) ([]domain.News, int64, error) {
+	// 验证分页参数
+	if page <= 0 {
+		page = 1
+	}
+	if limit <= 0 || limit > 100 {
+		limit = 20
+	}
+
+	// 如果没有指定状态过滤，默认只显示已发布的新闻
+	if filters == nil {
+		filters = make(map[string]interface{})
+	}
+	if _, exists := filters["is_published"]; !exists {
+		filters["is_published"] = true
+	}
+
+	return s.newsRepo.List(page, limit, filters)
+}
+
 // GetNews 获取新闻详情
 func (s *NewsService) GetNews(id uint) (*domain.News, error) {
 	news, err := s.newsRepo.GetByID(id)

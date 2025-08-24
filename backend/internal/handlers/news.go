@@ -14,6 +14,7 @@ type NewsService interface {
 	CreateNews(news *domain.News) error
 	GetNewsByID(id uint) (*domain.News, error)
 	GetNewsList(page, limit int) ([]domain.News, int64, error)
+	GetNewsListWithFilters(page, limit int, filters map[string]interface{}) ([]domain.News, int64, error)
 	UpdateNews(news *domain.News) error
 	DeleteNews(id uint) error
 }
@@ -35,11 +36,38 @@ func (h *NewsHandler) ListNews(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 
-	news, total, err := h.newsService.GetNewsList(page, limit)
+	// 限制每页数量
+	if limit > 100 {
+		limit = 100
+	}
+	if limit < 1 {
+		limit = 20
+	}
+	if page < 1 {
+		page = 1
+	}
+
+	// 构建过滤条件
+	filters := make(map[string]interface{})
+	if category := c.Query("category"); category != "" {
+		filters["category"] = category
+	}
+
+	// 权限控制：普通用户只能看已发布的新闻，管理员可以看所有
+	userRole, _ := c.Get("role")
+	if userRole != "admin" && userRole != "super_admin" {
+		filters["is_published"] = true
+	}
+
+	news, total, err := h.newsService.GetNewsListWithFilters(page, limit, filters)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve news"})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "internal_error",
+			"message": "获取新闻列表失败：" + err.Error(),
+		})
 		return
 	}
+
 	// 转换为DTO响应
 	var newsResponses []dto.NewsResponse
 	for _, newsItem := range news {
@@ -79,18 +107,12 @@ func (h *NewsHandler) CreateNews(c *gin.Context) {
 
 	userID, _ := c.Get("user_id")
 
-	status := "draft"
-	if req.IsPublished {
-		status = "published"
-	}
-
 	news := &domain.News{
 		Title:    req.Title,
 		Content:  req.Content,
 		Summary:  req.Summary,
 		Category: req.Category,
 		Tags:     req.Tags,
-		Status:   status,
 		AuthorID: userID.(uint),
 	}
 
@@ -136,13 +158,7 @@ func (h *NewsHandler) UpdateNews(c *gin.Context) {
 	if req.Category != "" {
 		news.Category = req.Category
 	}
-	if req.IsPublished != nil {
-		if *req.IsPublished {
-			news.Status = "published"
-		} else {
-			news.Status = "draft"
-		}
-	}
+	// IsPublished 字段在 domain 转换时处理
 	if len(req.Tags) > 0 {
 		news.Tags = req.Tags
 	}

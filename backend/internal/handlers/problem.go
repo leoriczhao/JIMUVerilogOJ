@@ -64,8 +64,11 @@ func (h *ProblemHandler) ListProblems(c *gin.Context) {
 		filters["category"] = category
 	}
 
-	// 默认只显示公开题目
-	filters["is_public"] = true
+	// 权限控制：普通用户只能看公开题目，管理员可以看所有
+	userRole, _ := c.Get("role")
+	if userRole != "admin" && userRole != "super_admin" {
+		filters["is_public"] = true
+	}
 
 	// 获取题目列表
 	problems, total, err := h.problemService.ListProblems(page, limit, filters)
