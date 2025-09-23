@@ -7,9 +7,15 @@
 ```
 tests/
 ├── README.md           # 测试说明文档
-├── services/           # 服务层单元测试
-│   └── user_test.go    # 用户服务测试
-└── ...
+├── repository/         # 仓储层单元测试
+│   ├── admin_test.go
+│   ├── forum_test.go
+│   ├── news_test.go
+│   ├── problem_test.go
+│   └── submission_test.go
+└── services/           # 服务层单元测试
+    ├── admin_test.go
+    └── ...
 ```
 
 ## 运行测试
@@ -18,7 +24,7 @@ tests/
 
 ```bash
 # 在backend根目录下运行
-go test ./tests/... -v
+go test ./... -v
 ```
 
 ### 运行特定模块测试
@@ -27,15 +33,15 @@ go test ./tests/... -v
 # 运行服务层测试
 go test ./tests/services/... -v
 
-# 运行用户服务测试
-go test ./tests/services/ -run TestUserService -v
+# 运行仓储层测试
+go test ./tests/repository/... -v
 ```
 
 ### 生成测试覆盖率报告
 
 ```bash
 # 生成覆盖率报告
-go test ./tests/... -coverprofile=coverage.out
+go test ./... -coverprofile=coverage.out
 
 # 查看覆盖率详情
 go tool cover -html=coverage.out
@@ -46,7 +52,7 @@ go tool cover -html=coverage.out
 ### 1. 测试文件命名
 
 - 测试文件以 `_test.go` 结尾
-- 测试文件名应与被测试的文件名对应，如 `user.go` 对应 `user_test.go`
+- 测试文件名应与被测试的文件名对应，如 `user.go` 对应 `user_test.go` (在 co-location 模式下)
 
 ### 2. 测试函数命名
 
@@ -56,34 +62,7 @@ go tool cover -html=coverage.out
 
 ### 3. 测试用例结构
 
-使用表驱动测试（Table-Driven Tests）：
-
-```go
-func TestUserService_CreateUser(t *testing.T) {
-    tests := []struct {
-        name          string
-        input         interface{}
-        mockSetup     func(*MockRepository)
-        expectedError string
-        expectedResult interface{}
-    }{
-        {
-            name: "成功案例",
-            // ...
-        },
-        {
-            name: "失败案例",
-            // ...
-        },
-    }
-
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            // 测试逻辑
-        })
-    }
-}
-```
+使用表驱动测试（Table-Driven Tests）或场景驱动的独立函数。
 
 ### 4. Mock 使用
 
@@ -98,79 +77,27 @@ func TestUserService_CreateUser(t *testing.T) {
 
 ## 已实现的测试
 
-### UserService 测试
+### Repository 层测试
 
-- ✅ `TestUserService_CreateUser` - 测试用户创建功能
-  - 成功创建用户
-  - 用户名已存在
-  - 邮箱已存在
-  - 数据库创建失败
+- ✅ `AdminRepository`
+- ✅ `ForumRepository`
+- ✅ `NewsRepository`
+- ✅ `ProblemRepository`
+- ✅ `SubmissionRepository`
+- ✅ `UserRepository` (位于 `internal/repository` 目录下)
 
-- ✅ `TestUserService_GetUserByUsername` - 测试根据用户名获取用户
-  - 成功获取用户
-  - 用户不存在
-  - 数据库错误
+### Service 层测试
 
-- ✅ `TestUserService_GetUserByID` - 测试根据ID获取用户
-  - 成功获取用户
-  - 用户不存在
-  - 数据库错误
-
-- ✅ `TestUserService_ValidatePassword` - 测试密码验证
-  - 密码正确
-  - 密码错误
-
-- ✅ `TestUserService_UpdateUser` - 测试用户更新
-  - 成功更新用户
-  - 更新失败
-
-- ✅ `TestUserService_UpdateUserStats` - 测试用户统计信息更新
-  - 成功更新统计信息
-  - 更新失败
-
-### ProblemService 测试
-
-- ✅ `TestProblemService_CreateProblem` - 测试题目创建功能
-  - 成功创建题目
-  - 题目标题已存在
-  - 数据库创建失败
-
-- ✅ `TestProblemService_GetProblem` - 测试获取题目详情
-  - 成功获取题目
-  - 题目不存在
-  - 数据库错误
-
-- ✅ `TestProblemService_ListProblems` - 测试获取题目列表
-  - 成功获取列表
-  - 分页查询
-  - 按难度筛选
-
-- ✅ `TestProblemService_UpdateProblem` - 测试题目更新
-  - 成功更新题目
-  - 题目不存在
-  - 更新失败
-
-- ✅ `TestProblemService_DeleteProblem` - 测试题目删除
-  - 成功删除题目
-  - 题目不存在
-  - 删除失败
-
-- ✅ `TestProblemService_AddTestCase` - 测试添加测试用例
-  - 成功添加测试用例
-  - 题目不存在
-  - 添加失败
-
-- ✅ `TestProblemService_UpdateProblemStats` - 测试更新题目统计
-  - 成功更新统计信息
-  - 更新失败
+- ✅ `AdminService`
+- ✅ `UserService`
+- ✅ `ProblemService`
+- ✅ `SubmissionService`
+- ✅ `ForumService`
+- ✅ `NewsService`
 
 ## 待实现的测试
 
-- [ ] ProblemService 测试
-- [ ] SubmissionService 测试
-- [ ] ForumService 测试
-- [ ] NewsService 测试
-- [ ] Repository 层测试
+- [x] Repository 层测试
 - [ ] Handler 层测试
 
 ## 测试最佳实践
