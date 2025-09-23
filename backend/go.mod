@@ -8,11 +8,13 @@ require (
 	github.com/google/wire v0.6.0
 	golang.org/x/crypto v0.28.0
 	gorm.io/driver/postgres v1.5.2
-	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.30.0
 )
 
-require github.com/mattn/go-sqlite3 v1.14.22 // indirect
+require (
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
+	gorm.io/driver/sqlite v1.6.0 // indirect
+)
 
 require (
 	github.com/bytedance/sonic v1.9.1 // indirect
