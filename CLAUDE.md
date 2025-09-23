@@ -133,7 +133,7 @@ Development and production configs use `.env.dev` and `.env.prod` files. Key set
 ## API Documentation
 
 OpenAPI specs available:
-- Main API: `docs/api.yaml`
+- Main API: `docs/openapi/api.yaml`
 - Admin API: `docs/openapi/admin.yaml`
 - Live docs: http://localhost:8080/docs (when running)
 
@@ -153,7 +153,7 @@ OpenAPI specs available:
 4. Test locally with `npm run dev`
 5. Build with `npm run build` to verify production readiness
 
-### Full System Testing
-1. Use `./scripts/deploy.sh --dev` for end-to-end testing
+### Backend API Testing
+1. Use `./scripts/deploy.sh --dev` for development environment
 2. Run Python API tests with `uv run python test_all.py`
-3. Verify all services are working via `./scripts/deploy.sh --status`
+3. Verify backend service status via `./scripts/deploy.sh --status`

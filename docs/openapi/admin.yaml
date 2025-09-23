@@ -1,13 +1,27 @@
 openapi: 3.0.3
 info:
-  title: Verilog OJ 管理端 API
-  version: 0.1.0
-  description: 管理后台接口（初始草案）
+  title: Verilog OJ Admin Management API
+  description: 管理后台API - 系统管理、用户管理、内容管理
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@verilog-oj.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
 servers:
-  - url: /api/v1
+  - url: http://localhost:8080/api/v1
+    description: 开发环境
+  - url: https://api.verilog-oj.com/api/v1
+    description: 生产环境
+
 paths:
+  # 管理员身份验证
   /admin/whoami:
     get:
+      tags:
+        - 管理员身份
       summary: 当前管理员信息
       security:
         - BearerAuth: []
@@ -17,16 +31,26 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  user_id: { type: integer }
-                  username: { type: string }
-                  role: { type: string }
-        '401': { description: 未认证 }
-        '403': { description: 无权限 }
+                $ref: '#/components/schemas/AdminInfo'
+        '401':
+          description: 未认证
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # 系统统计
   /admin/stats:
     get:
-      summary: 系统统计
+      tags:
+        - 系统统计
+      summary: 系统统计信息
       security:
         - BearerAuth: []
       responses:
@@ -35,14 +59,757 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  users: { type: integer }
-                  problems: { type: integer }
-                  submissions: { type: integer }
-                  judges_online: { type: integer }
-        '401': { description: 未认证 }
-        '403': { description: 无权限 }
+                $ref: '#/components/schemas/SystemStats'
+        '401':
+          description: 未认证
+        '403':
+          description: 无权限
+
+  /admin/stats/dashboard:
+    get:
+      tags:
+        - 系统统计
+      summary: 管理面板数据
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardStats'
+
+  # 用户管理
+  /admin/users:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取用户列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [student, teacher, admin, super_admin]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive]
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserList'
+
+    post:
+      tags:
+        - 用户管理
+      summary: 创建用户
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /admin/users/{id}:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取用户详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserDetail'
+
+    put:
+      tags:
+        - 用户管理
+      summary: 更新用户信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: 更新成功
+
+    delete:
+      tags:
+        - 用户管理
+      summary: 删除用户
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /admin/users/{id}/ban:
+    post:
+      tags:
+        - 用户管理
+      summary: 封禁用户
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BanUserRequest'
+      responses:
+        '200':
+          description: 封禁成功
+
+  /admin/users/{id}/unban:
+    post:
+      tags:
+        - 用户管理
+      summary: 解封用户
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 解封成功
+
+  # 题目管理
+  /admin/problems:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [Easy, Medium, Hard]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [public, private, draft]
+        - name: author_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProblemList'
+
+    post:
+      tags:
+        - 题目管理
+      summary: 创建题目
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminCreateProblemRequest'
+      responses:
+        '201':
+          description: 创建成功
+
+  /admin/problems/{id}:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProblemDetail'
+
+    put:
+      tags:
+        - 题目管理
+      summary: 更新题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUpdateProblemRequest'
+      responses:
+        '200':
+          description: 更新成功
+
+    delete:
+      tags:
+        - 题目管理
+      summary: 删除题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /admin/problems/{id}/publish:
+    post:
+      tags:
+        - 题目管理
+      summary: 发布题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 发布成功
+
+  /admin/problems/{id}/unpublish:
+    post:
+      tags:
+        - 题目管理
+      summary: 取消发布题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 取消发布成功
+
+  # 提交管理
+  /admin/submissions:
+    get:
+      tags:
+        - 提交管理
+      summary: 获取提交记录列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+        - name: problem_id
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSubmissionList'
+
+  /admin/submissions/{id}:
+    get:
+      tags:
+        - 提交管理
+      summary: 获取提交详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSubmissionDetail'
+
+    delete:
+      tags:
+        - 提交管理
+      summary: 删除提交记录
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /admin/submissions/{id}/rejudge:
+    post:
+      tags:
+        - 提交管理
+      summary: 重新判题
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 重新判题已启动
+
+  # 新闻管理
+  /admin/news:
+    get:
+      tags:
+        - 新闻管理
+      summary: 获取新闻列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [published, draft, archived]
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminNewsList'
+
+    post:
+      tags:
+        - 新闻管理
+      summary: 创建新闻
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminCreateNewsRequest'
+      responses:
+        '201':
+          description: 创建成功
+
+  /admin/news/{id}:
+    get:
+      tags:
+        - 新闻管理
+      summary: 获取新闻详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminNewsDetail'
+
+    put:
+      tags:
+        - 新闻管理
+      summary: 更新新闻
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUpdateNewsRequest'
+      responses:
+        '200':
+          description: 更新成功
+
+    delete:
+      tags:
+        - 新闻管理
+      summary: 删除新闻
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  # 论坛管理
+  /admin/forum/posts:
+    get:
+      tags:
+        - 论坛管理
+      summary: 获取帖子列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [normal, hidden, locked]
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminForumPostList'
+
+  /admin/forum/posts/{id}:
+    get:
+      tags:
+        - 论坛管理
+      summary: 获取帖子详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminForumPostDetail'
+
+    delete:
+      tags:
+        - 论坛管理
+      summary: 删除帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /admin/forum/posts/{id}/lock:
+    post:
+      tags:
+        - 论坛管理
+      summary: 锁定帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 锁定成功
+
+  /admin/forum/posts/{id}/unlock:
+    post:
+      tags:
+        - 论坛管理
+      summary: 解锁帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 解锁成功
+
+  /admin/forum/posts/{id}/sticky:
+    post:
+      tags:
+        - 论坛管理
+      summary: 置顶帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 置顶成功
+
+  /admin/forum/posts/{id}/unsticky:
+    post:
+      tags:
+        - 论坛管理
+      summary: 取消置顶帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 取消置顶成功
+
+  # 系统配置
+  /admin/settings:
+    get:
+      tags:
+        - 系统配置
+      summary: 获取系统配置
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemSettings'
+
+    put:
+      tags:
+        - 系统配置
+      summary: 更新系统配置
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSystemSettingsRequest'
+      responses:
+        '200':
+          description: 更新成功
+
+  # 判题服务管理
+  /admin/judges:
+    get:
+      tags:
+        - 判题服务
+      summary: 获取判题服务列表
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JudgeServiceList'
+
+  /admin/judges/{id}:
+    get:
+      tags:
+        - 判题服务
+      summary: 获取判题服务详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JudgeServiceDetail'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -50,3 +817,647 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: integer
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        nickname:
+          type: string
+        avatar:
+          type: string
+        school:
+          type: string
+        student_id:
+          type: string
+        role:
+          type: string
+          enum: [student, teacher, admin, super_admin]
+        solved:
+          type: integer
+        submitted:
+          type: integer
+        rating:
+          type: integer
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        last_login_at:
+          type: string
+          format: date-time
+
+    AdminInfo:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        username:
+          type: string
+        role:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+
+    SystemStats:
+      type: object
+      properties:
+        users:
+          type: integer
+        problems:
+          type: integer
+        submissions:
+          type: integer
+        judges_online:
+          type: integer
+
+    DashboardStats:
+      type: object
+      properties:
+        total_users:
+          type: integer
+        active_users:
+          type: integer
+        total_problems:
+          type: integer
+        public_problems:
+          type: integer
+        total_submissions:
+          type: integer
+        recent_submissions:
+          type: integer
+        judges_online:
+          type: integer
+        judges_total:
+          type: integer
+        system_load:
+          type: number
+        memory_usage:
+          type: number
+
+    AdminUserList:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AdminUserDetail:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            submission_stats:
+              type: object
+              properties:
+                total:
+                  type: integer
+                accepted:
+                  type: integer
+                acceptance_rate:
+                  type: number
+            login_history:
+              type: array
+              items:
+                type: object
+                properties:
+                  ip:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+
+    CreateUserRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+        - role
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        nickname:
+          type: string
+        role:
+          type: string
+          enum: [student, teacher, admin]
+        school:
+          type: string
+        student_id:
+          type: string
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        nickname:
+          type: string
+        role:
+          type: string
+          enum: [student, teacher, admin]
+        school:
+          type: string
+        student_id:
+          type: string
+        is_active:
+          type: boolean
+
+    BanUserRequest:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+        duration:
+          type: integer
+          description: 封禁天数，0表示永久封禁
+
+    Problem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        input_desc:
+          type: string
+        output_desc:
+          type: string
+        difficulty:
+          type: string
+          enum: [Easy, Medium, Hard]
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        time_limit:
+          type: integer
+        memory_limit:
+          type: integer
+        submit_count:
+          type: integer
+        accepted_count:
+          type: integer
+        is_public:
+          type: boolean
+        author:
+          $ref: '#/components/schemas/User'
+        created_at:
+          type: string
+          format: date-time
+
+    AdminProblemList:
+      type: object
+      properties:
+        problems:
+          type: array
+          items:
+            $ref: '#/components/schemas/Problem'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AdminProblemDetail:
+      allOf:
+        - $ref: '#/components/schemas/Problem'
+        - type: object
+          properties:
+            test_cases:
+              type: array
+              items:
+                type: object
+                properties:
+                  input:
+                    type: string
+                  output:
+                    type: string
+                  is_sample:
+                    type: boolean
+            recent_submissions:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  user:
+                    $ref: '#/components/schemas/User'
+                  status:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+
+    AdminCreateProblemRequest:
+      type: object
+      required:
+        - title
+        - description
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        input_desc:
+          type: string
+        output_desc:
+          type: string
+        difficulty:
+          type: string
+          enum: [Easy, Medium, Hard]
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        time_limit:
+          type: integer
+          default: 1000
+        memory_limit:
+          type: integer
+          default: 128
+        is_public:
+          type: boolean
+          default: false
+        test_cases:
+          type: array
+          items:
+            type: object
+            properties:
+              input:
+                type: string
+              output:
+                type: string
+              is_sample:
+                type: boolean
+
+    AdminUpdateProblemRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        input_desc:
+          type: string
+        output_desc:
+          type: string
+        difficulty:
+          type: string
+          enum: [Easy, Medium, Hard]
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        time_limit:
+          type: integer
+        memory_limit:
+          type: integer
+        is_public:
+          type: boolean
+
+    Submission:
+      type: object
+      properties:
+        id:
+          type: integer
+        user:
+          $ref: '#/components/schemas/User'
+        problem:
+          $ref: '#/components/schemas/Problem'
+        code:
+          type: string
+        language:
+          type: string
+        status:
+          type: string
+        score:
+          type: integer
+        run_time:
+          type: integer
+        memory:
+          type: integer
+        error_message:
+          type: string
+        passed_tests:
+          type: integer
+        total_tests:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    AdminSubmissionList:
+      type: object
+      properties:
+        submissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Submission'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AdminSubmissionDetail:
+      allOf:
+        - $ref: '#/components/schemas/Submission'
+        - type: object
+          properties:
+            judge_log:
+              type: string
+            test_results:
+              type: array
+              items:
+                type: object
+                properties:
+                  test_case_id:
+                    type: integer
+                  status:
+                    type: string
+                  time_used:
+                    type: integer
+                  memory_used:
+                    type: integer
+                  error_message:
+                    type: string
+
+    News:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        summary:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        is_published:
+          type: boolean
+        author:
+          $ref: '#/components/schemas/User'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AdminNewsList:
+      type: object
+      properties:
+        news:
+          type: array
+          items:
+            $ref: '#/components/schemas/News'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AdminNewsDetail:
+      allOf:
+        - $ref: '#/components/schemas/News'
+        - type: object
+          properties:
+            view_count:
+              type: integer
+            like_count:
+              type: integer
+
+    AdminCreateNewsRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        summary:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        is_published:
+          type: boolean
+          default: false
+
+    AdminUpdateNewsRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        summary:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        is_published:
+          type: boolean
+
+    ForumPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        tags:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        reply_count:
+          type: integer
+        view_count:
+          type: integer
+        like_count:
+          type: integer
+        is_sticky:
+          type: boolean
+        is_locked:
+          type: boolean
+        is_public:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AdminForumPostList:
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForumPost'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    AdminForumPostDetail:
+      allOf:
+        - $ref: '#/components/schemas/ForumPost'
+        - type: object
+          properties:
+            recent_replies:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  content:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+                  created_at:
+                    type: string
+                    format: date-time
+
+    SystemSettings:
+      type: object
+      properties:
+        site_name:
+          type: string
+        site_description:
+          type: string
+        registration_enabled:
+          type: boolean
+        maintenance_mode:
+          type: boolean
+        max_submissions_per_day:
+          type: integer
+        judge_timeout:
+          type: integer
+        email_smtp_host:
+          type: string
+        email_smtp_port:
+          type: integer
+
+    UpdateSystemSettingsRequest:
+      type: object
+      properties:
+        site_name:
+          type: string
+        site_description:
+          type: string
+        registration_enabled:
+          type: boolean
+        maintenance_mode:
+          type: boolean
+        max_submissions_per_day:
+          type: integer
+        judge_timeout:
+          type: integer
+        email_smtp_host:
+          type: string
+        email_smtp_port:
+          type: integer
+
+    JudgeServiceList:
+      type: object
+      properties:
+        judges:
+          type: array
+          items:
+            $ref: '#/components/schemas/JudgeServiceDetail'
+
+    JudgeServiceDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [online, offline, busy]
+        version:
+          type: string
+        supported_languages:
+          type: array
+          items:
+            type: string
+        cpu_usage:
+          type: number
+        memory_usage:
+          type: number
+        queue_length:
+          type: integer
+        last_heartbeat:
+          type: string
+          format: date-time
