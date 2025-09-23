@@ -1,0 +1,115 @@
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15
+    container_name: verilog_oj_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - oj_network
+    restart: unless-stopped
+
+  # Redis 缓存和消息队列
+  redis:
+    image: redis:7-alpine
+    container_name: verilog_oj_redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - oj_network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # 主后端服务
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: verilog_oj_backend
+    env_file:
+      - .env.dev  # 默认使用开发环境配置
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - oj_network
+    restart: unless-stopped
+
+  # 判题服务
+  judge:
+    build:
+      context: .
+      dockerfile: docker/judge.Dockerfile
+    container_name: verilog_oj_judge
+    env_file:
+      - .env.dev  # 默认使用开发环境配置
+    volumes:
+      - judge_work:/tmp/judge
+    depends_on:
+      - redis
+    networks:
+      - oj_network
+    restart: unless-stopped
+    # 为判题服务分配更多资源
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+  # 前端服务
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    container_name: verilog_oj_frontend
+    ports:
+      - "3000:80"
+    networks:
+      - oj_network
+    restart: unless-stopped
+
+  # 管理后台前端（生产镜像，内部由顶层 Nginx 反代，不直接暴露宿主端口）
+  admin-frontend:
+    build:
+      context: .
+      dockerfile: docker/admin-frontend.Dockerfile
+    container_name: verilog_oj_admin_frontend
+    networks:
+      - oj_network
+    restart: unless-stopped
+
+  # Nginx 反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: verilog_oj_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - oj_network
+    restart: unless-stopped
+
+# 网络配置
+networks:
+  oj_network:
+    driver: bridge
+
+# 数据卷配置
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  judge_work:
+    driver: local

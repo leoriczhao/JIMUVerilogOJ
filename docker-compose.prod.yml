@@ -1,0 +1,87 @@
+services:
+  # 主后端服务 - 生产环境覆盖
+  backend:
+    env_file:
+      - .env.prod
+    environment:
+      GIN_MODE: release
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # 判题服务 - 生产环境覆盖
+  judge:
+    env_file:
+      - .env.prod
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+  # PostgreSQL - 生产环境
+  postgres:
+    env_file:
+      - .env.prod
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-verilog_oj}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # Redis - 生产环境（带密码保护）
+  redis:
+    env_file:
+      - .env.prod
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Nginx - 生产环境启用
+  nginx:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M 
+
+  # 管理后台前端 - 生产环境覆盖
+  admin-frontend:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
