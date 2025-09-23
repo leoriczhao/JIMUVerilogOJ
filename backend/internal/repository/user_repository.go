@@ -88,7 +88,8 @@ func (r *UserRepository) Update(user *domain.User) error {
 	// 将domain.User转换为models.User
 	modelUser := UserDomainToModel(user)
 
-	err := r.db.Save(modelUser).Error
+	// 使用Updates方法只更新非零值字段，避免意外清空字段
+	err := r.db.Model(modelUser).Updates(modelUser).Error
 	if err != nil {
 		return err
 	}
