@@ -44,6 +44,8 @@ class BaseAPITester:
     def make_request(self, method: str, endpoint: str, data: Optional[Dict] = None, 
                     headers: Optional[Dict] = None, expect_status: int = 200) -> Optional[Dict]:
         """发送HTTP请求"""
+        # 添加请求间延迟以避免速率限制
+        time.sleep(0.1)
         url = f"{API_BASE}{endpoint}"
         
         # 设置默认headers

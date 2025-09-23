@@ -11,6 +11,7 @@ type Handlers struct {
 	SubmissionHandler *SubmissionHandler
 	ForumHandler      *ForumHandler
 	NewsHandler       *NewsHandler
+	AdminHandler      *AdminHandler
 }
 
 // NewHandlers 创建Handlers实例
@@ -20,6 +21,7 @@ func NewHandlers(
 	submissionService *services.SubmissionService,
 	forumService *services.ForumService,
 	newsService *services.NewsService,
+	adminService *services.AdminService,
 ) *Handlers {
 	return &Handlers{
 		UserHandler:       NewUserHandler(userService),
@@ -27,5 +29,6 @@ func NewHandlers(
 		SubmissionHandler: NewSubmissionHandler(submissionService),
 		ForumHandler:      NewForumHandler(forumService),
 		NewsHandler:       NewNewsHandler(newsService),
+		AdminHandler:      NewAdminHandler(adminService),
 	}
 }

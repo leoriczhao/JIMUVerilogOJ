@@ -10,6 +10,7 @@ type UserRegisterRequest struct {
 	Nickname  string `json:"nickname"`
 	School    string `json:"school"`
 	StudentID string `json:"student_id"`
+	Role      string `json:"role"`
 }
 
 // UserLoginRequest 用户登录请求

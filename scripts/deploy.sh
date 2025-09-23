@@ -12,9 +12,14 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-# 检查 Docker Compose 是否安装
-if ! command -v docker-compose &> /dev/null; then
-    echo "错误: Docker Compose 未安装，请先安装 Docker Compose"
+# 检查 Docker Compose 是否安装（优先使用 V2 语法）
+if command -v docker &> /dev/null && docker compose version &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+    echo "警告: 使用旧版 docker-compose 命令，建议升级到 Docker Compose V2"
+else
+    echo "错误: Docker Compose 未安装，请先安装 Docker 和 Docker Compose"
     exit 1
 fi
 
@@ -45,14 +50,14 @@ deploy_dev() {
 DB_HOST=postgres
 DB_PORT=5432
 DB_USERNAME=postgres
-DB_PASSWORD=password
+DB_PASSWORD=dev_password_123
 DB_DATABASE=verilog_oj
 DB_SSL_MODE=disable
 
 # === Redis 配置 ===
 REDIS_HOST=redis
 REDIS_PORT=6379
-REDIS_PASSWORD=""
+REDIS_PASSWORD=dev_redis_password_456
 REDIS_DB=0
 
 # === 服务器配置 ===
@@ -81,12 +86,14 @@ EOF
     fi
     
     # 构建并启动服务
-    docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d
+    $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.dev.yml up --build -d
     
     echo "开发环境部署完成！"
     echo "后端 API: http://localhost:8080"
     echo "前端页面: http://localhost:80"
     echo "API 文档: http://localhost:8080/docs"
+    echo "数据库: localhost:5432 (用户名: postgres, 密码: dev_password_123)"
+    echo "Redis: localhost:6379 (密码: dev_redis_password_456)"
 }
 
 # 函数：生产环境部署
@@ -140,7 +147,7 @@ EOF
     fi
     
     # 构建并启动服务
-    docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+    $DOCKER_COMPOSE_CMD -f docker-compose.yml -f docker-compose.prod.yml up --build -d
     
     echo "生产环境部署完成！"
     echo "请确保防火墙已开放相应端口"
@@ -149,27 +156,27 @@ EOF
 # 函数：停止所有服务
 stop_services() {
     echo "=== 停止所有服务 ==="
-    docker-compose down
+    $DOCKER_COMPOSE_CMD down
     echo "所有服务已停止"
 }
 
 # 函数：重启所有服务
 restart_services() {
     echo "=== 重启所有服务 ==="
-    docker-compose restart
+    $DOCKER_COMPOSE_CMD restart
     echo "所有服务已重启"
 }
 
 # 函数：查看服务日志
 show_logs() {
     echo "=== 服务日志 ==="
-    docker-compose logs -f
+    $DOCKER_COMPOSE_CMD logs -f
 }
 
 # 函数：查看服务状态
 show_status() {
     echo "=== 服务状态 ==="
-    docker-compose ps
+    $DOCKER_COMPOSE_CMD ps
 }
 
 # 函数：初始化数据库
@@ -181,7 +188,7 @@ init_database() {
     sleep 10
     
     # 运行数据库迁移（如果需要）
-    docker-compose exec backend ./main migrate
+    $DOCKER_COMPOSE_CMD exec backend ./main migrate
     
     echo "数据库初始化完成"
 }

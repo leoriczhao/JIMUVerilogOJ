@@ -36,7 +36,11 @@ func NewUserService(userRepo UserRepository) *UserService {
 }
 
 // CreateUser 创建用户
-func (s *UserService) CreateUser(username, email, password string) (*domain.User, error) {
+func (s *UserService) CreateUser(username, email, password, role string) (*domain.User, error) {
+	// 如果role为空，默认为student
+	if role == "" {
+		role = "student"
+	}
 	// 检查用户名是否已存在
 	existingUser, err := s.userRepo.GetByUsername(username)
 	if err != nil {
@@ -65,7 +69,7 @@ func (s *UserService) CreateUser(username, email, password string) (*domain.User
 		Username: username,
 		Email:    email,
 		Password: string(hashedPassword),
-		Role:     "student",
+		Role:     role,
 		IsActive: true,
 		Rating:   1200,
 	}

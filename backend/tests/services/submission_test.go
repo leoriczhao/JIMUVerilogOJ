@@ -53,17 +53,17 @@ func (m *MockSubmissionRepository) SoftDelete(id uint) error {
 // TestSubmissionService_CreateSubmission 测试创建提交
 func TestSubmissionService_CreateSubmission(t *testing.T) {
 	tests := []struct {
-		name           string
-		problemID      uint
-		code           string
-		language       string
-		userID         uint
-		mockUser       *domain.User
-		mockProblem    *domain.Problem
-		userRepoError  error
-		problemRepoError error
-		createError    error
-		expectedError  string
+		name               string
+		problemID          uint
+		code               string
+		language           string
+		userID             uint
+		mockUser           *domain.User
+		mockProblem        *domain.Problem
+		userRepoError      error
+		problemRepoError   error
+		createError        error
+		expectedError      string
 		expectedSubmission bool
 	}{
 		{
@@ -87,12 +87,12 @@ func TestSubmissionService_CreateSubmission(t *testing.T) {
 			expectedSubmission: true,
 		},
 		{
-			name:      "用户不存在",
-			problemID: 1,
-			code:      "module test(); endmodule",
-			language:  "verilog",
-			userID:    1,
-			mockUser:  nil,
+			name:          "用户不存在",
+			problemID:     1,
+			code:          "module test(); endmodule",
+			language:      "verilog",
+			userID:        1,
+			mockUser:      nil,
 			expectedError: "用户不存在",
 		},
 		{
@@ -358,11 +358,11 @@ func TestSubmissionService_ListSubmissions(t *testing.T) {
 			expectedLimit: 10,
 		},
 		{
-			name:          "页码修正",
-			page:          0,
-			limit:         10,
-			expectedPage:  1,
-			expectedLimit: 10,
+			name:            "页码修正",
+			page:            0,
+			limit:           10,
+			expectedPage:    1,
+			expectedLimit:   10,
 			mockSubmissions: []domain.Submission{},
 			mockTotal:       0,
 		},
@@ -458,26 +458,26 @@ func TestSubmissionService_UpdateSubmissionStatus(t *testing.T) {
 		expectedError  string
 	}{
 		{
-			name:        "成功更新为pending状态",
-			id:          1,
-			status:      "pending",
-			score:       0,
-			runTime:     0,
-			memory:      0,
+			name:         "成功更新为pending状态",
+			id:           1,
+			status:       "pending",
+			score:        0,
+			runTime:      0,
+			memory:       0,
 			errorMessage: "",
-			passedTests: 0,
-			totalTests:  10,
+			passedTests:  0,
+			totalTests:   10,
 		},
 		{
-			name:        "成功更新为accepted状态-首次通过",
-			id:          1,
-			status:      "accepted",
-			score:       100,
-			runTime:     500,
-			memory:      1024,
+			name:         "成功更新为accepted状态-首次通过",
+			id:           1,
+			status:       "accepted",
+			score:        100,
+			runTime:      500,
+			memory:       1024,
 			errorMessage: "",
-			passedTests: 10,
-			totalTests:  10,
+			passedTests:  10,
+			totalTests:   10,
 			mockSubmission: &domain.Submission{
 				ID:        1,
 				UserID:    1,
@@ -491,15 +491,15 @@ func TestSubmissionService_UpdateSubmissionStatus(t *testing.T) {
 			acceptedCount: 1,
 		},
 		{
-			name:        "成功更新为accepted状态-非首次通过",
-			id:          1,
-			status:      "accepted",
-			score:       100,
-			runTime:     500,
-			memory:      1024,
+			name:         "成功更新为accepted状态-非首次通过",
+			id:           1,
+			status:       "accepted",
+			score:        100,
+			runTime:      500,
+			memory:       1024,
 			errorMessage: "",
-			passedTests: 10,
-			totalTests:  10,
+			passedTests:  10,
+			totalTests:   10,
 			mockSubmission: &domain.Submission{
 				ID:        1,
 				UserID:    1,
@@ -515,10 +515,10 @@ func TestSubmissionService_UpdateSubmissionStatus(t *testing.T) {
 			expectedError: "update failed",
 		},
 		{
-			name:        "accepted状态但获取提交失败",
-			id:          1,
-			status:      "accepted",
-			getError:    errors.New("get submission failed"),
+			name:          "accepted状态但获取提交失败",
+			id:            1,
+			status:        "accepted",
+			getError:      errors.New("get submission failed"),
 			expectedError: "get submission failed",
 		},
 		{
@@ -638,7 +638,7 @@ func TestSubmissionService_GetSubmissionStats(t *testing.T) {
 	mockStats := map[string]interface{}{
 		"total_submitted": 10,
 		"total_accepted":  5,
-		"acceptance_rate":  0.5,
+		"acceptance_rate": 0.5,
 	}
 
 	mockSubmissionRepo.On("GetStats", userID).Return(mockStats, nil)
@@ -654,14 +654,14 @@ func TestSubmissionService_GetSubmissionStats(t *testing.T) {
 // TestSubmissionService_ValidateSubmissionAccess 测试验证提交访问权限
 func TestSubmissionService_ValidateSubmissionAccess(t *testing.T) {
 	tests := []struct {
-		name           string
-		submissionID   uint
-		userID         uint
-		mockSubmission *domain.Submission
-		mockUser       *domain.User
+		name            string
+		submissionID    uint
+		userID          uint
+		mockSubmission  *domain.Submission
+		mockUser        *domain.User
 		submissionError error
-		userError      error
-		expectedError  string
+		userError       error
+		expectedError   string
 	}{
 		{
 			name:         "提交者本人访问",
@@ -717,11 +717,11 @@ func TestSubmissionService_ValidateSubmissionAccess(t *testing.T) {
 			expectedError: "没有权限访问此提交记录",
 		},
 		{
-			name:            "提交不存在",
-			submissionID:    999,
-			userID:          1,
-			mockSubmission:  nil,
-			expectedError:   "提交记录不存在",
+			name:           "提交不存在",
+			submissionID:   999,
+			userID:         1,
+			mockSubmission: nil,
+			expectedError:  "提交记录不存在",
 		},
 		{
 			name:         "用户不存在",

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 主后端服务 - 生产环境覆盖
   backend:
@@ -33,7 +31,13 @@ services:
 
   # PostgreSQL - 生产环境
   postgres:
+    env_file:
+      - .env.prod
     restart: always
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-verilog_oj}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     deploy:
       resources:
         limits:
@@ -45,6 +49,8 @@ services:
 
   # Redis - 生产环境（带密码保护）
   redis:
+    env_file:
+      - .env.prod
     restart: always
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     deploy:
@@ -67,3 +73,15 @@ services:
         reservations:
           cpus: '0.25'
           memory: 128M 
+
+  # 管理后台前端 - 生产环境覆盖
+  admin-frontend:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M

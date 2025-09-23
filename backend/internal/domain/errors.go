@@ -29,11 +29,11 @@ var (
 
 // 论坛相关错误
 var (
-	ErrPostNotFound     = errors.New("forum post not found")
-	ErrReplyNotFound    = errors.New("forum reply not found")
-	ErrPostLocked       = errors.New("forum post is locked")
-	ErrInvalidCategory  = errors.New("invalid forum category")
-	ErrContentEmpty     = errors.New("content cannot be empty")
+	ErrPostNotFound    = errors.New("forum post not found")
+	ErrReplyNotFound   = errors.New("forum reply not found")
+	ErrPostLocked      = errors.New("forum post is locked")
+	ErrInvalidCategory = errors.New("invalid forum category")
+	ErrContentEmpty    = errors.New("content cannot be empty")
 )
 
 // 新闻相关错误
@@ -46,8 +46,8 @@ var (
 
 // 通用错误
 var (
-	ErrInvalidID       = errors.New("invalid ID")
-	ErrInvalidInput    = errors.New("invalid input")
+	ErrInvalidID        = errors.New("invalid ID")
+	ErrInvalidInput     = errors.New("invalid input")
 	ErrPermissionDenied = errors.New("permission denied")
-	ErrInternalError   = errors.New("internal server error")
+	ErrInternalError    = errors.New("internal server error")
 )

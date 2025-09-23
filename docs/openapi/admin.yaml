@@ -1,0 +1,52 @@
+openapi: 3.0.3
+info:
+  title: Verilog OJ 管理端 API
+  version: 0.1.0
+  description: 管理后台接口（初始草案）
+servers:
+  - url: /api/v1
+paths:
+  /admin/whoami:
+    get:
+      summary: 当前管理员信息
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id: { type: integer }
+                  username: { type: string }
+                  role: { type: string }
+        '401': { description: 未认证 }
+        '403': { description: 无权限 }
+  /admin/stats:
+    get:
+      summary: 系统统计
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users: { type: integer }
+                  problems: { type: integer }
+                  submissions: { type: integer }
+                  judges_online: { type: integer }
+        '401': { description: 未认证 }
+        '403': { description: 无权限 }
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+

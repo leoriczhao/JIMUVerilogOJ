@@ -94,20 +94,35 @@ func ForumPostToResponse(post *models.ForumPost) ForumPostResponse {
 		json.Unmarshal([]byte(post.Tags), &tags)
 	}
 
-	return ForumPostResponse{
+	response := ForumPostResponse{
 		ID:         post.ID,
 		Title:      post.Title,
 		Content:    post.Content,
-		UserID:     post.UserID,
 		Category:   post.Category,
 		Tags:       tags,
 		ViewCount:  post.ViewCount,
 		ReplyCount: post.ReplyCount,
+		LikeCount:  post.LikeCount,
 		IsLocked:   post.IsLocked,
 		IsSticky:   post.IsSticky,
+		IsPublic:   post.IsPublic,
 		CreatedAt:  post.CreatedAt,
 		UpdatedAt:  post.UpdatedAt,
 	}
+
+	// 处理用户信息
+	if post.User.ID != 0 {
+		response.User = UserResponse{
+			ID:       post.User.ID,
+			Username: post.User.Username,
+			Email:    post.User.Email,
+			Nickname: post.User.Nickname,
+			Avatar:   post.User.Avatar,
+			Role:     post.User.Role,
+		}
+	}
+
+	return response
 }
 
 // ForumReplyToResponse 将ForumReply模型转换为ForumReplyResponse
@@ -300,20 +315,35 @@ func ForumPostCreateRequestToDomain(req *ForumPostCreateRequest) *domain.ForumPo
 
 // ForumPostDomainToResponse 将Domain实体转换为ForumPostResponse
 func ForumPostDomainToResponse(post *domain.ForumPost) ForumPostResponse {
-	return ForumPostResponse{
+	response := ForumPostResponse{
 		ID:         post.ID,
 		Title:      post.Title,
 		Content:    post.Content,
-		UserID:     post.AuthorID,
 		Category:   post.Category,
 		Tags:       post.Tags,
 		ViewCount:  post.ViewCount,
 		ReplyCount: post.ReplyCount,
+		LikeCount:  post.LikeCount,
 		IsLocked:   post.IsLocked,
 		IsSticky:   post.IsSticky,
+		IsPublic:   post.IsPublic,
 		CreatedAt:  post.CreatedAt,
 		UpdatedAt:  post.UpdatedAt,
 	}
+
+	// 处理用户信息
+	if post.User != nil {
+		response.User = UserResponse{
+			ID:       post.User.ID,
+			Username: post.User.Username,
+			Email:    post.User.Email,
+			Nickname: post.User.Nickname,
+			Avatar:   post.User.Avatar,
+			Role:     post.User.Role,
+		}
+	}
+
+	return response
 }
 
 // ForumReplyCreateRequestToDomain 将ForumReplyCreateRequest转换为Domain实体

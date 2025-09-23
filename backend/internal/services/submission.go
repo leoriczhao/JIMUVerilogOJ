@@ -264,6 +264,6 @@ func (s *SubmissionService) DeleteSubmission(id uint, userID uint, userRole stri
 }
 
 // generateJudgeID 生成判题ID
-func  () string {
+func generateJudgeID() string {
 	return strconv.FormatInt(time.Now().UnixNano(), 10)
 }

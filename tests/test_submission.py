@@ -117,7 +117,12 @@ class SubmissionTester(BaseAPITester):
         if not self.submission_id:
             self.log_warning("没有提交ID，跳过测试")
             return True
+        # 切换到admin token进行删除
+        old_token = self.token
+        self.set_token(self.admin_token)
         response = self.make_request("DELETE", f"/submissions/{self.submission_id}", expect_status=200)
+        # 恢复student token
+        self.set_token(old_token)
         if response:
             self.log_success(f"删除提交 {self.submission_id} 成功")
             self.submission_id = None  # 清除ID

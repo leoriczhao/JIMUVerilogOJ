@@ -24,17 +24,17 @@ func NewUserRepository(db *gorm.DB) services.UserRepository {
 func (r *UserRepository) Create(user *domain.User) error {
 	// 将domain.User转换为models.User
 	modelUser := UserDomainToModel(user)
-	
+
 	err := r.db.Create(modelUser).Error
 	if err != nil {
 		return err
 	}
-	
+
 	// 更新ID和时间戳
 	user.ID = modelUser.ID
 	user.CreatedAt = modelUser.CreatedAt
 	user.UpdatedAt = modelUser.UpdatedAt
-	
+
 	return nil
 }
 
@@ -48,7 +48,7 @@ func (r *UserRepository) GetByUsername(username string) (*domain.User, error) {
 		}
 		return nil, err
 	}
-	
+
 	// 转换为domain.User
 	return UserModelToDomain(&modelUser), nil
 }
@@ -63,7 +63,7 @@ func (r *UserRepository) GetByID(id uint) (*domain.User, error) {
 		}
 		return nil, err
 	}
-	
+
 	// 转换为domain.User
 	return UserModelToDomain(&modelUser), nil
 }
@@ -78,7 +78,7 @@ func (r *UserRepository) GetByEmail(email string) (*domain.User, error) {
 		}
 		return nil, err
 	}
-	
+
 	// 转换为domain.User
 	return UserModelToDomain(&modelUser), nil
 }
@@ -87,15 +87,16 @@ func (r *UserRepository) GetByEmail(email string) (*domain.User, error) {
 func (r *UserRepository) Update(user *domain.User) error {
 	// 将domain.User转换为models.User
 	modelUser := UserDomainToModel(user)
-	
-	err := r.db.Save(modelUser).Error
+
+	// 使用Updates方法只更新非零值字段，避免意外清空字段
+	err := r.db.Model(modelUser).Updates(modelUser).Error
 	if err != nil {
 		return err
 	}
-	
+
 	// 更新时间戳
 	user.UpdatedAt = modelUser.UpdatedAt
-	
+
 	return nil
 }
 

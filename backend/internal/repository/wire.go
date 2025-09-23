@@ -5,8 +5,6 @@ package repository
 
 import (
 	"github.com/google/wire"
-	"gorm.io/gorm"
-	"verilog-oj/backend/internal/services"
 )
 
 // RepositorySet 提供所有Repository的Wire集合
@@ -25,6 +23,9 @@ var RepositorySet = wire.NewSet(
 
 	// News Repository
 	NewNewsRepository,
+
+	// Admin Repository
+	NewAdminRepository,
 
 	// Repositories构造函数
 	NewRepositories,

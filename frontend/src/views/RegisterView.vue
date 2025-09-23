@@ -226,13 +226,14 @@ const handleRegister = async () => {
 }
 
 .main-content {
-  padding: 60px 40px;
+  padding: 0 40px;
   background: #f8f9fa;
   min-height: calc(100vh - 120px);
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
+  margin-top: 60px; /* 为固定导航栏留出空间 */
 }
 
 .register-card {

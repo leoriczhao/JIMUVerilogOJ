@@ -52,6 +52,9 @@ func main() {
 
 // startJudgeWorker 启动判题工作器
 func startJudgeWorker(ctx context.Context, judger *judge.Judge, rq *queue.RedisQueue) {
+	retryCount := 0
+	maxRetries := 10
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -60,9 +63,32 @@ func startJudgeWorker(ctx context.Context, judger *judge.Judge, rq *queue.RedisQ
 			// 从队列获取判题请求
 			request, err := rq.Pop(ctx)
 			if err != nil {
-				log.Printf("Failed to pop from queue: %v", err)
+				retryCount++
+				log.Printf("Failed to pop from queue (retry %d/%d): %v", retryCount, maxRetries, err)
+
+				// 超过最大重试次数则退出
+				if retryCount >= maxRetries {
+					log.Printf("Max retries exceeded, shutting down worker")
+					return
+				}
+
+				// 重试延迟：指数退避，最大30秒
+				retryDelay := time.Duration(retryCount) * time.Second
+				if retryDelay > 30*time.Second {
+					retryDelay = 30 * time.Second
+				}
+
+				log.Printf("Waiting %v before retry...", retryDelay)
+				select {
+				case <-time.After(retryDelay):
+				case <-ctx.Done():
+					return
+				}
 				continue
 			}
+
+			// 连接成功，重置重试计数
+			retryCount = 0
 
 			if request == nil {
 				// 队列为空，继续轮询
@@ -84,8 +110,8 @@ func startJudgeWorker(ctx context.Context, judger *judge.Judge, rq *queue.RedisQ
 				continue
 			}
 
-			log.Printf("Completed submission: %s, Status: %s, Score: %d", 
+			log.Printf("Completed submission: %s, Status: %s, Score: %d",
 				result.SubmissionID, result.Status, result.Score)
 		}
 	}
-} 
+}

@@ -7,10 +7,11 @@
 package internal
 
 import (
-	"gorm.io/gorm"
 	"verilog-oj/backend/internal/handlers"
 	"verilog-oj/backend/internal/repository"
 	"verilog-oj/backend/internal/services"
+
+	"gorm.io/gorm"
 )
 
 // Injectors from wire.go:
@@ -27,8 +28,10 @@ func InitializeApp(db *gorm.DB) (*App, error) {
 	forumService := services.NewForumService(forumRepository, userRepository)
 	newsRepository := repository.NewNewsRepository(db)
 	newsService := services.NewNewsService(newsRepository, userRepository)
-	handlersHandlers := handlers.NewHandlers(userService, problemService, submissionService, forumService, newsService)
-	servicesServices := services.NewServices(userRepository, problemRepository, submissionRepository, forumRepository, newsRepository)
+	adminRepository := repository.NewAdminRepository(db)
+	adminService := services.NewAdminService(adminRepository)
+	handlersHandlers := handlers.NewHandlers(userService, problemService, submissionService, forumService, newsService, adminService)
+	servicesServices := services.NewServices(userRepository, problemRepository, submissionRepository, forumRepository, newsRepository, adminRepository)
 	repositories := repository.NewRepositories(db)
 	app := NewApp(handlersHandlers, servicesServices, repositories)
 	return app, nil

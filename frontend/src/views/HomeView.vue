@@ -50,8 +50,8 @@ const loadData = async () => {
 
     const loadForum = async () => {
       try {
-        const res = await getForumPosts()
-        forumPosts.value = res?.posts?.slice(0, 4) || []
+        const res = await getForumPosts({ page: 1, limit: 4 })
+        forumPosts.value = res?.posts || []
       } catch (error) {
         console.error('加载论坛失败:', error)
         forumPosts.value = []
@@ -163,6 +163,7 @@ onMounted(() => {
               查看更多 <el-icon><ArrowRight /></el-icon>
             </el-button>
           </div>
+          
           <div class="forum-list">
             <el-card 
               v-for="post in forumPosts" 
@@ -202,8 +203,9 @@ onMounted(() => {
 .hero-section {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 120px 0 80px;
+  padding: 120px 0 40px;
   text-align: center;
+  margin-top: 60px; /* 为固定导航栏留出空间 */
 }
 
 .hero-content {
@@ -240,7 +242,7 @@ onMounted(() => {
 }
 
 .main-content {
-  padding: 60px 0;
+  padding: 0 0 60px;
   background: #f8f9fa;
 }
 
@@ -398,13 +400,13 @@ onMounted(() => {
   color: #7f8c8d;
 }
 
-.stats {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #95a5a6;
-  font-size: 14px;
-}
+  .stats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #95a5a6;
+    font-size: 14px;
+  }
 
 /* 桌面端优化 */
 @media (min-width: 1200px) {

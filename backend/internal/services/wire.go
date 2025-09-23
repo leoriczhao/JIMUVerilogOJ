@@ -24,6 +24,9 @@ var ServiceSet = wire.NewSet(
 	// News Service
 	NewNewsService,
 
+	// Admin Service
+	NewAdminService,
+
 	// Services构造函数
 	NewServices,
 )

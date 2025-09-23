@@ -175,6 +175,8 @@ class ComprehensiveAPITester:
                 try:
                     result = available_modules[module_name]()
                     module_results.append(result)
+                    # 模块间添加延迟以避免速率限制
+                    time.sleep(1)
                 except Exception as e:
                     self.log_error(f"{module_name}模块测试异常: {str(e)}")
                     module_results.append((f"{module_name}模块", False))

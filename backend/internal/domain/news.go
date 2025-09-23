@@ -9,18 +9,18 @@ type News struct {
 	Content  string
 	Summary  string
 	AuthorID uint
-	
+
 	// 状态和分类
 	Status   string
 	Category string
 	Tags     []string
-	
+
 	// 特殊标志
 	IsFeatured bool
-	
+
 	// 统计信息
 	ViewCount int
-	
+
 	// 时间戳
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
