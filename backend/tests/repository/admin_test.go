@@ -13,7 +13,7 @@ import (
 // setupAdminTestDB creates a new in-memory SQLite database for testing the admin repository.
 func setupAdminTestDB(t *testing.T) *gorm.DB {
 	// Using "file::memory:?cache=shared" allows multiple connections to the same in-memory database
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("file:"+t.Name()+"?mode=memory&cache=shared"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("failed to connect to memory db: %v", err)
 	}
