@@ -20,9 +20,9 @@ services:
     ports:
       - "5432:5432"  # 开发环境暴露数据库端口
     environment:
-      POSTGRES_DB: ${DB_DATABASE:-verilog_oj}
-      POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev_password_123}
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
 
   # Redis - 开发环境
   redis:
@@ -30,7 +30,7 @@ services:
       - .env.dev
     ports:
       - "6379:6379"  # 开发环境暴露 Redis 端口
-    command: sh -c 'redis-server --appendonly yes --requirepass "$${REDIS_PASSWORD:-dev_redis_password_456}"'
+    command: sh -c 'redis-server --appendonly yes --requirepass "$${REDIS_PASSWORD}"'
   # 前端服务 - 开发环境
   frontend:
     build:
