@@ -127,3 +127,4 @@ test-output/
 # Backup files
 *.bak
 *.backup.env.dev
+__pycache__/
