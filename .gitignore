@@ -126,4 +126,4 @@ test-output/
 
 # Backup files
 *.bak
-*.backup
+*.backup.env.dev
