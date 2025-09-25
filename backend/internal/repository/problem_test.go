@@ -1,10 +1,9 @@
-package repository_test
+package repository
 
 import (
 	"testing"
 	"verilog-oj/backend/internal/domain"
 	"verilog-oj/backend/internal/models"
-	"verilog-oj/backend/internal/repository"
 
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
@@ -28,7 +27,7 @@ func setupProblemTestDB(t *testing.T) *gorm.DB {
 
 func TestProblemRepository_CreateAndGet(t *testing.T) {
 	db := setupProblemTestDB(t)
-	repo := repository.NewProblemRepository(db)
+	repo := NewProblemRepository(db)
 
 	problem := &domain.Problem{
 		Title:       "Test Problem",
@@ -48,7 +47,7 @@ func TestProblemRepository_CreateAndGet(t *testing.T) {
 
 func TestProblemRepository_Update(t *testing.T) {
 	db := setupProblemTestDB(t)
-	repo := repository.NewProblemRepository(db)
+	repo := NewProblemRepository(db)
 
 	problem := &domain.Problem{Title: "Original", Description: "Original"}
 	repo.Create(problem)
@@ -63,7 +62,7 @@ func TestProblemRepository_Update(t *testing.T) {
 
 func TestProblemRepository_Delete(t *testing.T) {
 	db := setupProblemTestDB(t)
-	repo := repository.NewProblemRepository(db)
+	repo := NewProblemRepository(db)
 
 	problem := &domain.Problem{Title: "To Be Deleted"}
 	repo.Create(problem)
@@ -78,7 +77,7 @@ func TestProblemRepository_Delete(t *testing.T) {
 
 func TestProblemRepository_List(t *testing.T) {
 	db := setupProblemTestDB(t)
-	repo := repository.NewProblemRepository(db)
+	repo := NewProblemRepository(db)
 
 	repo.Create(&domain.Problem{Title: "P1", Difficulty: "Easy", Category: "Array"})
 	repo.Create(&domain.Problem{Title: "P2", Difficulty: "Medium", Category: "String"})
@@ -99,7 +98,7 @@ func TestProblemRepository_List(t *testing.T) {
 
 func TestProblemRepository_TestCases(t *testing.T) {
 	db := setupProblemTestDB(t)
-	repo := repository.NewProblemRepository(db)
+	repo := NewProblemRepository(db)
 
 	problem := &domain.Problem{Title: "Problem With Cases"}
 	repo.Create(problem)
@@ -126,7 +125,7 @@ func TestProblemRepository_TestCases(t *testing.T) {
 
 func TestProblemRepository_UpdateCounts(t *testing.T) {
 	db := setupProblemTestDB(t)
-	repo := repository.NewProblemRepository(db)
+	repo := NewProblemRepository(db)
 
 	problem := &domain.Problem{Title: "Counter Problem"}
 	repo.Create(problem)

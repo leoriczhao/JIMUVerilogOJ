@@ -3,7 +3,6 @@ package services
 import (
 	"errors"
 	"testing"
-	"verilog-oj/backend/internal/services"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -34,7 +33,7 @@ func TestAdminService_GetSystemStats(t *testing.T) {
 	tests := []struct {
 		name          string
 		mockSetup     func(*MockAdminRepository)
-		expectedStats *services.SystemStats
+		expectedStats *SystemStats
 		expectedError string
 	}{
 		{
@@ -44,7 +43,7 @@ func TestAdminService_GetSystemStats(t *testing.T) {
 				mockRepo.On("CountProblems").Return(int64(50), nil)
 				mockRepo.On("CountSubmissions").Return(int64(200), nil)
 			},
-			expectedStats: &services.SystemStats{
+			expectedStats: &SystemStats{
 				Users:        100,
 				Problems:     50,
 				Submissions:  200,
@@ -86,7 +85,7 @@ func TestAdminService_GetSystemStats(t *testing.T) {
 			mockRepo := new(MockAdminRepository)
 			tt.mockSetup(mockRepo)
 
-			adminService := services.NewAdminService(mockRepo)
+			adminService := NewAdminService(mockRepo)
 			stats, err := adminService.GetSystemStats()
 
 			if tt.expectedError != "" {

@@ -1,4 +1,4 @@
-package handlers_test
+package handlers
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"testing"
 	"verilog-oj/backend/internal/domain"
 	"verilog-oj/backend/internal/dto"
-	"verilog-oj/backend/internal/handlers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -58,7 +57,7 @@ func TestUserHandler_Register(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		mockService := new(MockUserService)
-		handler := handlers.NewUserHandler(mockService)
+		handler := NewUserHandler(mockService)
 
 		req := dto.UserRegisterRequest{Username: "newuser", Email: "new@test.com", Password: "password"}
 		// The user object that CreateUser is expected to return
@@ -87,7 +86,7 @@ func TestUserHandler_Register(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		mockService := new(MockUserService)
-		handler := handlers.NewUserHandler(mockService)
+		handler := NewUserHandler(mockService)
 
 		req := dto.UserRegisterRequest{Username: "existinguser", Email: "new@test.com", Password: "password"}
 		existingUser := &domain.User{ID: 1, Username: req.Username}
@@ -112,7 +111,7 @@ func TestUserHandler_GetProfile(t *testing.T) {
 	c.Set("user_id", uint(1)) // Mock user ID from auth middleware
 
 	mockService := new(MockUserService)
-	handler := handlers.NewUserHandler(mockService)
+	handler := NewUserHandler(mockService)
 
 	expectedUser := &domain.User{ID: 1, Username: "testuser", Email: "test@test.com"}
 	mockService.On("GetUserByID", uint(1)).Return(expectedUser, nil)
@@ -133,7 +132,7 @@ func TestUserHandler_UpdateProfile(t *testing.T) {
 	c.Set("user_id", uint(1))
 
 	mockService := new(MockUserService)
-	handler := handlers.NewUserHandler(mockService)
+	handler := NewUserHandler(mockService)
 
 	req := dto.UserUpdateProfileRequest{Nickname: "Updated Nickname"}
 	userToUpdate := &domain.User{ID: 1, Username: "testuser"}
@@ -160,7 +159,7 @@ func TestUserHandler_Login(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 
 	mockService := new(MockUserService)
-	handler := handlers.NewUserHandler(mockService)
+	handler := NewUserHandler(mockService)
 
 	password := "password123"
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)

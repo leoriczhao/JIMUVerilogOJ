@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 	"verilog-oj/backend/internal/domain"
-	"verilog-oj/backend/internal/services"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -219,7 +218,7 @@ func TestSubmissionService_CreateSubmission(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
+			service := NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
 
 			// 执行测试
 			result, err := service.CreateSubmission(tt.problemID, tt.code, tt.language, tt.userID)
@@ -298,7 +297,7 @@ func TestSubmissionService_GetSubmission(t *testing.T) {
 			mockSubmissionRepo.On("GetByID", tt.id).Return(tt.mockSubmission, tt.repoError)
 
 			// 创建服务
-			service := services.NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
+			service := NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
 
 			// 执行测试
 			result, err := service.GetSubmission(tt.id)
@@ -413,7 +412,7 @@ func TestSubmissionService_ListSubmissions(t *testing.T) {
 			mockSubmissionRepo.On("List", expectedPage, expectedLimit, tt.userID, tt.problemID, tt.status).Return(tt.mockSubmissions, tt.mockTotal, tt.repoError)
 
 			// 创建服务
-			service := services.NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
+			service := NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
 
 			// 执行测试
 			result, err := service.ListSubmissions(tt.page, tt.limit, tt.userID, tt.problemID, tt.status)
@@ -555,7 +554,7 @@ func TestSubmissionService_UpdateSubmissionStatus(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
+			service := NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
 
 			// 执行测试
 			err := service.UpdateSubmissionStatus(tt.id, tt.status, tt.score, tt.runTime, tt.memory, tt.errorMessage, tt.passedTests, tt.totalTests)
@@ -592,7 +591,7 @@ func TestSubmissionService_GetUserSubmissions(t *testing.T) {
 
 	mockSubmissionRepo.On("List", page, limit, userID, uint(0), "").Return(mockSubmissions, mockTotal, nil)
 
-	service := services.NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
+	service := NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
 	result, err := service.GetUserSubmissions(userID, page, limit)
 
 	assert.NoError(t, err)
@@ -618,7 +617,7 @@ func TestSubmissionService_GetProblemSubmissions(t *testing.T) {
 
 	mockSubmissionRepo.On("List", page, limit, uint(0), problemID, "").Return(mockSubmissions, mockTotal, nil)
 
-	service := services.NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
+	service := NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
 	result, err := service.GetProblemSubmissions(problemID, page, limit)
 
 	assert.NoError(t, err)
@@ -643,7 +642,7 @@ func TestSubmissionService_GetSubmissionStats(t *testing.T) {
 
 	mockSubmissionRepo.On("GetStats", userID).Return(mockStats, nil)
 
-	service := services.NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
+	service := NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
 	result, err := service.GetSubmissionStats(userID)
 
 	assert.NoError(t, err)
@@ -750,7 +749,7 @@ func TestSubmissionService_ValidateSubmissionAccess(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
+			service := NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
 
 			// 执行测试
 			err := service.ValidateSubmissionAccess(tt.submissionID, tt.userID)
@@ -849,7 +848,7 @@ func TestSubmissionService_DeleteSubmission(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
+			service := NewSubmissionService(mockSubmissionRepo, mockProblemRepo, mockUserRepo)
 
 			// 执行测试
 			err := service.DeleteSubmission(tt.id, tt.userID, tt.userRole)

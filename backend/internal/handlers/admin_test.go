@@ -1,4 +1,4 @@
-package handlers_test
+package handlers
 
 import (
 	"encoding/json"
@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"verilog-oj/backend/internal/handlers"
 	"verilog-oj/backend/internal/services"
 
 	"github.com/gin-gonic/gin"
@@ -39,7 +38,7 @@ func TestAdminHandler_WhoAmI(t *testing.T) {
 	c.Set("role", "admin")
 
 	// The handler doesn't use the service for this method, so we can pass nil
-	handler := handlers.NewAdminHandler(nil)
+	handler := NewAdminHandler(nil)
 
 	// Execute
 	handler.WhoAmI(c)
@@ -65,7 +64,7 @@ func TestAdminHandler_Stats(t *testing.T) {
 		expectedStats := &services.SystemStats{Users: 10, Problems: 20, Submissions: 30, JudgesOnline: 1}
 		mockService.On("GetSystemStats").Return(expectedStats, nil)
 
-		handler := handlers.NewAdminHandler(mockService)
+		handler := NewAdminHandler(mockService)
 
 		// Execute
 		handler.Stats(c)
@@ -88,7 +87,7 @@ func TestAdminHandler_Stats(t *testing.T) {
 		mockService := new(MockAdminService)
 		mockService.On("GetSystemStats").Return(nil, errors.New("db error"))
 
-		handler := handlers.NewAdminHandler(mockService)
+		handler := NewAdminHandler(mockService)
 
 		// Execute
 		handler.Stats(c)

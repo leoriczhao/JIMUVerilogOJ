@@ -1,9 +1,8 @@
-package repository_test
+package repository
 
 import (
 	"testing"
 	"verilog-oj/backend/internal/models"
-	"verilog-oj/backend/internal/repository"
 
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
@@ -28,7 +27,7 @@ func setupAdminTestDB(t *testing.T) *gorm.DB {
 
 func TestAdminRepositoryImpl_CountUsers(t *testing.T) {
 	db := setupAdminTestDB(t)
-	repo := repository.NewAdminRepository(db)
+	repo := NewAdminRepository(db)
 
 	// Case 1: No users
 	count, err := repo.CountUsers()
@@ -46,7 +45,7 @@ func TestAdminRepositoryImpl_CountUsers(t *testing.T) {
 
 func TestAdminRepositoryImpl_CountProblems(t *testing.T) {
 	db := setupAdminTestDB(t)
-	repo := repository.NewAdminRepository(db)
+	repo := NewAdminRepository(db)
 
 	// Case 1: No problems
 	count, err := repo.CountProblems()
@@ -65,7 +64,7 @@ func TestAdminRepositoryImpl_CountProblems(t *testing.T) {
 
 func TestAdminRepositoryImpl_CountSubmissions(t *testing.T) {
 	db := setupAdminTestDB(t)
-	repo := repository.NewAdminRepository(db)
+	repo := NewAdminRepository(db)
 
 	// Case 1: No submissions
 	count, err := repo.CountSubmissions()

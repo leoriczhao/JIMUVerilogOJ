@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 	"verilog-oj/backend/internal/domain"
-	"verilog-oj/backend/internal/services"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -143,7 +142,7 @@ func TestUserService_CreateUser(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			// 创建服务
-			userService := services.NewUserService(mockRepo)
+			userService := NewUserService(mockRepo)
 
 			// 执行测试
 			user, err := userService.CreateUser(tt.username, tt.email, tt.password, "student")
@@ -229,7 +228,7 @@ func TestUserService_GetUserByUsername(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			// 创建服务
-			userService := services.NewUserService(mockRepo)
+			userService := NewUserService(mockRepo)
 
 			// 执行测试
 			user, err := userService.GetUserByUsername(tt.username)
@@ -314,7 +313,7 @@ func TestUserService_GetUserByID(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			// 创建服务
-			userService := services.NewUserService(mockRepo)
+			userService := NewUserService(mockRepo)
 
 			// 执行测试
 			user, err := userService.GetUserByID(tt.userID)
@@ -378,7 +377,7 @@ func TestUserService_ValidatePassword(t *testing.T) {
 			mockRepo := new(MockUserRepository)
 
 			// 创建服务
-			userService := services.NewUserService(mockRepo)
+			userService := NewUserService(mockRepo)
 
 			// 执行测试
 			err := userService.ValidatePassword(tt.user, tt.password)
@@ -435,7 +434,7 @@ func TestUserService_UpdateUser(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			// 创建服务
-			userService := services.NewUserService(mockRepo)
+			userService := NewUserService(mockRepo)
 
 			// 执行测试
 			err := userService.UpdateUser(tt.user)
@@ -493,7 +492,7 @@ func TestUserService_UpdateUserStats(t *testing.T) {
 			tt.mockSetup(mockRepo)
 
 			// 创建服务
-			userService := services.NewUserService(mockRepo)
+			userService := NewUserService(mockRepo)
 
 			// 执行测试
 			err := userService.UpdateUserStats(tt.userID, tt.solved, tt.submitted)

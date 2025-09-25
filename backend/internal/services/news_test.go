@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 	"verilog-oj/backend/internal/domain"
-	"verilog-oj/backend/internal/services"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -150,7 +149,7 @@ func TestNewsService_CreateNews(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewNewsService(mockNewsRepo, mockUserRepo)
+			service := NewNewsService(mockNewsRepo, mockUserRepo)
 
 			// 执行测试
 			err := service.CreateNews(tt.news)
@@ -262,7 +261,7 @@ func TestNewsService_GetNewsList(t *testing.T) {
 			mockNewsRepo.On("List", expectedPage, expectedLimit, mock.AnythingOfType("map[string]interface {}")).Return(tt.mockNews, tt.mockTotal, tt.repoError)
 
 			// 创建服务
-			service := services.NewNewsService(mockNewsRepo, mockUserRepo)
+			service := NewNewsService(mockNewsRepo, mockUserRepo)
 
 			// 执行测试
 			result, total, err := service.GetNewsList(tt.page, tt.limit)
@@ -333,7 +332,7 @@ func TestNewsService_GetNews(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewNewsService(mockNewsRepo, mockUserRepo)
+			service := NewNewsService(mockNewsRepo, mockUserRepo)
 
 			// 执行测试
 			result, err := service.GetNews(tt.id)
@@ -372,7 +371,7 @@ func TestNewsService_GetNewsByID(t *testing.T) {
 	mockNewsRepo.On("GetByID", newsID).Return(mockNews, nil)
 	mockNewsRepo.On("IncrementViewCount", newsID).Return(nil)
 
-	service := services.NewNewsService(mockNewsRepo, mockUserRepo)
+	service := NewNewsService(mockNewsRepo, mockUserRepo)
 	result, err := service.GetNewsByID(newsID)
 
 	assert.NoError(t, err)
@@ -441,7 +440,7 @@ func TestNewsService_UpdateNews(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewNewsService(mockNewsRepo, mockUserRepo)
+			service := NewNewsService(mockNewsRepo, mockUserRepo)
 
 			// 执行测试
 			err := service.UpdateNews(tt.news)
@@ -517,7 +516,7 @@ func TestNewsService_DeleteNews(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewNewsService(mockNewsRepo, mockUserRepo)
+			service := NewNewsService(mockNewsRepo, mockUserRepo)
 
 			// 执行测试
 			err := service.DeleteNews(tt.id)

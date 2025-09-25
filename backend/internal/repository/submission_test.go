@@ -1,10 +1,9 @@
-package repository_test
+package repository
 
 import (
 	"testing"
 	"verilog-oj/backend/internal/domain"
 	"verilog-oj/backend/internal/models"
-	"verilog-oj/backend/internal/repository"
 	"verilog-oj/backend/internal/services"
 
 	"github.com/stretchr/testify/assert"
@@ -21,14 +20,14 @@ func setupSubmissionTestDB(t *testing.T) (*gorm.DB, services.UserRepository, ser
 	if err != nil {
 		t.Fatalf("failed to migrate db: %v", err)
 	}
-	userRepo := repository.NewUserRepository(db)
-	problemRepo := repository.NewProblemRepository(db)
+	userRepo := NewUserRepository(db)
+	problemRepo := NewProblemRepository(db)
 	return db, userRepo, problemRepo
 }
 
 func TestSubmissionRepository_CreateAndGet(t *testing.T) {
 	db, userRepo, problemRepo := setupSubmissionTestDB(t)
-	repo := repository.NewSubmissionRepository(db)
+	repo := NewSubmissionRepository(db)
 
 	user := &domain.User{Username: "submitter", Email: "submitter@test.com", Password: "pw"}
 	userRepo.Create(user)
@@ -53,7 +52,7 @@ func TestSubmissionRepository_CreateAndGet(t *testing.T) {
 
 func TestSubmissionRepository_UpdateStatus(t *testing.T) {
 	db, userRepo, problemRepo := setupSubmissionTestDB(t)
-	repo := repository.NewSubmissionRepository(db)
+	repo := NewSubmissionRepository(db)
 	user := &domain.User{Username: "submitter", Email: "submitter@test.com", Password: "pw"}
 	userRepo.Create(user)
 	problem := &domain.Problem{Title: "Submittable Problem"}
@@ -71,7 +70,7 @@ func TestSubmissionRepository_UpdateStatus(t *testing.T) {
 
 func TestSubmissionRepository_List(t *testing.T) {
 	db, userRepo, problemRepo := setupSubmissionTestDB(t)
-	repo := repository.NewSubmissionRepository(db)
+	repo := NewSubmissionRepository(db)
 	user1 := &domain.User{Username: "u1", Email: "u1@test.com", Password: "pw"}
 	userRepo.Create(user1)
 	user2 := &domain.User{Username: "u2", Email: "u2@test.com", Password: "pw"}
@@ -97,7 +96,7 @@ func TestSubmissionRepository_List(t *testing.T) {
 
 func TestSubmissionRepository_CountAcceptedByUser(t *testing.T) {
 	db, userRepo, problemRepo := setupSubmissionTestDB(t)
-	repo := repository.NewSubmissionRepository(db)
+	repo := NewSubmissionRepository(db)
 	user := &domain.User{Username: "u1", Email: "u1@test.com", Password: "pw"}
 	userRepo.Create(user)
 	p1 := &domain.Problem{Title: "P1"}
@@ -116,7 +115,7 @@ func TestSubmissionRepository_CountAcceptedByUser(t *testing.T) {
 
 func TestSubmissionRepository_GetStats(t *testing.T) {
 	db, userRepo, problemRepo := setupSubmissionTestDB(t)
-	repo := repository.NewSubmissionRepository(db)
+	repo := NewSubmissionRepository(db)
 	user := &domain.User{Username: "u1", Email: "u1@test.com", Password: "pw"}
 	userRepo.Create(user)
 	p1 := &domain.Problem{Title: "P1"}
