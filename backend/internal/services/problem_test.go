@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 	"verilog-oj/backend/internal/domain"
-	"verilog-oj/backend/internal/services"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -156,7 +155,7 @@ func TestProblemService_CreateProblem(t *testing.T) {
 			mockRepo := new(MockProblemRepository)
 			tt.mockFn(mockRepo)
 
-			service := services.NewProblemService(mockRepo)
+			service := NewProblemService(mockRepo)
 			err := service.CreateProblem(tt.problem)
 
 			if tt.wantErr {
@@ -228,7 +227,7 @@ func TestProblemService_GetProblem(t *testing.T) {
 			mockRepo := new(MockProblemRepository)
 			tt.mockFn(mockRepo)
 
-			service := services.NewProblemService(mockRepo)
+			service := NewProblemService(mockRepo)
 			result, err := service.GetProblem(tt.id)
 
 			if tt.wantErr {
@@ -316,7 +315,7 @@ func TestProblemService_ListProblems(t *testing.T) {
 			mockRepo := new(MockProblemRepository)
 			tt.mockFn(mockRepo)
 
-			service := services.NewProblemService(mockRepo)
+			service := NewProblemService(mockRepo)
 			_, _, err := service.ListProblems(tt.page, tt.limit, tt.filters)
 
 			if tt.wantErr {
@@ -380,7 +379,7 @@ func TestProblemService_UpdateProblem(t *testing.T) {
 			mockRepo := new(MockProblemRepository)
 			tt.mockFn(mockRepo)
 
-			service := services.NewProblemService(mockRepo)
+			service := NewProblemService(mockRepo)
 			err := service.UpdateProblem(tt.problem)
 
 			if tt.wantErr {
@@ -440,7 +439,7 @@ func TestProblemService_DeleteProblem(t *testing.T) {
 			mockRepo := new(MockProblemRepository)
 			tt.mockFn(mockRepo)
 
-			service := services.NewProblemService(mockRepo)
+			service := NewProblemService(mockRepo)
 			err := service.DeleteProblem(tt.id)
 
 			if tt.wantErr {
@@ -520,7 +519,7 @@ func TestProblemService_AddTestCase(t *testing.T) {
 			mockRepo := new(MockProblemRepository)
 			tt.mockFn(mockRepo)
 
-			service := services.NewProblemService(mockRepo)
+			service := NewProblemService(mockRepo)
 			err := service.AddTestCase(tt.testCase)
 
 			if tt.wantErr {
@@ -591,7 +590,7 @@ func TestProblemService_UpdateProblemStats(t *testing.T) {
 			mockRepo := new(MockProblemRepository)
 			tt.mockFn(mockRepo)
 
-			service := services.NewProblemService(mockRepo)
+			service := NewProblemService(mockRepo)
 			err := service.UpdateProblemStats(tt.problemID, tt.submitIncrement, tt.acceptedIncrement)
 
 			if tt.wantErr {

@@ -4,7 +4,6 @@ import (
 	"testing"
 	"verilog-oj/backend/internal/domain"
 	"verilog-oj/backend/internal/models"
-	"verilog-oj/backend/internal/repository"
 
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
@@ -29,7 +28,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestUserRepository_Update(t *testing.T) {
 	db := setupTestDB(t)
-	repo := repository.NewUserRepository(db)
+	repo := NewUserRepository(db)
 
 	// 1. 创建一个初始用户
 	initialUser := &domain.User{

@@ -1,10 +1,9 @@
-package repository_test
+package repository
 
 import (
 	"testing"
 	"verilog-oj/backend/internal/domain"
 	"verilog-oj/backend/internal/models"
-	"verilog-oj/backend/internal/repository"
 	"verilog-oj/backend/internal/services"
 
 	"github.com/stretchr/testify/assert"
@@ -25,13 +24,13 @@ func setupForumTestDB(t *testing.T) (*gorm.DB, services.UserRepository) {
 		t.Fatalf("failed to migrate db: %v", err)
 	}
 
-	userRepo := repository.NewUserRepository(db)
+	userRepo := NewUserRepository(db)
 	return db, userRepo
 }
 
 func TestForumRepository_CreateAndGetPost(t *testing.T) {
     db, userRepo := setupForumTestDB(t)
-    repo := repository.NewForumRepository(db)
+    repo := NewForumRepository(db)
 
     // 1. Create a user first, as posts require an author.
     user := &domain.User{Username: "post_author", Email: "author@test.com", Password: "password"}
@@ -65,7 +64,7 @@ func TestForumRepository_CreateAndGetPost(t *testing.T) {
 
 func TestForumRepository_UpdatePost(t *testing.T) {
 	db, userRepo := setupForumTestDB(t)
-	repo := repository.NewForumRepository(db)
+	repo := NewForumRepository(db)
 
 	// 1. Create a user and an initial post
 	user := &domain.User{Username: "updater", Email: "updater@test.com", Password: "password"}
@@ -94,7 +93,7 @@ func TestForumRepository_UpdatePost(t *testing.T) {
 
 func TestForumRepository_ListPosts(t *testing.T) {
 	db, userRepo := setupForumTestDB(t)
-	repo := repository.NewForumRepository(db)
+	repo := NewForumRepository(db)
 
 	// Create users and posts
 	user1 := &domain.User{Username: "user1", Email: "user1@test.com", Password: "pw"}
@@ -127,7 +126,7 @@ func TestForumRepository_ListPosts(t *testing.T) {
 
 func TestForumRepository_DeletePost(t *testing.T) {
 	db, userRepo := setupForumTestDB(t)
-	repo := repository.NewForumRepository(db)
+	repo := NewForumRepository(db)
 
 	user := &domain.User{Username: "deleter", Email: "deleter@test.com", Password: "pw"}
 	userRepo.Create(user)
@@ -145,7 +144,7 @@ func TestForumRepository_DeletePost(t *testing.T) {
 
 func TestForumRepository_PostCounters(t *testing.T) {
 	db, userRepo := setupForumTestDB(t)
-	repo := repository.NewForumRepository(db)
+	repo := NewForumRepository(db)
 
 	user := &domain.User{Username: "counter", Email: "counter@test.com", Password: "pw"}
 	userRepo.Create(user)
@@ -174,7 +173,7 @@ func TestForumRepository_PostCounters(t *testing.T) {
 
 func TestForumRepository_CreateAndGetReplies(t *testing.T) {
 	db, userRepo := setupForumTestDB(t)
-	repo := repository.NewForumRepository(db)
+	repo := NewForumRepository(db)
 
 	// Setup user and post
 	user := &domain.User{Username: "replier", Email: "replier@test.com", Password: "pw"}
@@ -205,7 +204,7 @@ func TestForumRepository_CreateAndGetReplies(t *testing.T) {
 
 func TestForumRepository_Likes(t *testing.T) {
 	db, userRepo := setupForumTestDB(t)
-	repo := repository.NewForumRepository(db)
+	repo := NewForumRepository(db)
 
 	// Setup user and post
 	user1 := &domain.User{Username: "liker1", Email: "liker1@test.com", Password: "pw"}

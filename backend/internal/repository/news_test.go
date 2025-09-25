@@ -1,10 +1,9 @@
-package repository_test
+package repository
 
 import (
 	"testing"
 	"verilog-oj/backend/internal/domain"
 	"verilog-oj/backend/internal/models"
-	"verilog-oj/backend/internal/repository"
 	"verilog-oj/backend/internal/services"
 
 	"github.com/stretchr/testify/assert"
@@ -25,13 +24,13 @@ func setupNewsTestDB(t *testing.T) (*gorm.DB, services.UserRepository) {
 		t.Fatalf("failed to migrate db: %v", err)
 	}
 
-	userRepo := repository.NewUserRepository(db)
+	userRepo := NewUserRepository(db)
 	return db, userRepo
 }
 
 func TestNewsRepository_CreateAndGet(t *testing.T) {
 	db, userRepo := setupNewsTestDB(t)
-	repo := repository.NewNewsRepository(db)
+	repo := NewNewsRepository(db)
 
 	user := &domain.User{Username: "news_author", Email: "news@test.com", Password: "pw"}
 	userRepo.Create(user)
@@ -56,7 +55,7 @@ func TestNewsRepository_CreateAndGet(t *testing.T) {
 
 func TestNewsRepository_Update(t *testing.T) {
 	db, userRepo := setupNewsTestDB(t)
-	repo := repository.NewNewsRepository(db)
+	repo := NewNewsRepository(db)
 
 	user := &domain.User{Username: "news_author", Email: "news@test.com", Password: "pw"}
 	userRepo.Create(user)
@@ -77,7 +76,7 @@ func TestNewsRepository_Update(t *testing.T) {
 
 func TestNewsRepository_Delete(t *testing.T) {
 	db, userRepo := setupNewsTestDB(t)
-	repo := repository.NewNewsRepository(db)
+	repo := NewNewsRepository(db)
 
 	user := &domain.User{Username: "news_author", Email: "news@test.com", Password: "pw"}
 	userRepo.Create(user)
@@ -94,7 +93,7 @@ func TestNewsRepository_Delete(t *testing.T) {
 
 func TestNewsRepository_List(t *testing.T) {
 	db, userRepo := setupNewsTestDB(t)
-	repo := repository.NewNewsRepository(db)
+	repo := NewNewsRepository(db)
 
 	user := &domain.User{Username: "news_author", Email: "news@test.com", Password: "pw"}
 	userRepo.Create(user)
@@ -114,7 +113,7 @@ func TestNewsRepository_List(t *testing.T) {
 
 func TestNewsRepository_IncrementViewCount(t *testing.T) {
 	db, userRepo := setupNewsTestDB(t)
-	repo := repository.NewNewsRepository(db)
+	repo := NewNewsRepository(db)
 
 	user := &domain.User{Username: "news_author", Email: "news@test.com", Password: "pw"}
 	userRepo.Create(user)

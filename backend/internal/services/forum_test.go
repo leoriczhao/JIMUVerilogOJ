@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 	"verilog-oj/backend/internal/domain"
-	"verilog-oj/backend/internal/services"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -213,7 +212,7 @@ func TestForumService_CreatePost(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewForumService(mockForumRepo, mockUserRepo)
+			service := NewForumService(mockForumRepo, mockUserRepo)
 
 			// 执行测试
 			err := service.CreatePost(tt.post)
@@ -281,7 +280,7 @@ func TestForumService_GetPost(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewForumService(mockForumRepo, mockUserRepo)
+			service := NewForumService(mockForumRepo, mockUserRepo)
 
 			// 执行测试
 			result, err := service.GetPost(tt.id)
@@ -398,7 +397,7 @@ func TestForumService_ListPosts(t *testing.T) {
 			mockForumRepo.On("ListPosts", expectedPage, expectedLimit, mock.AnythingOfType("map[string]interface {}")).Return(tt.mockPosts, tt.mockTotal, tt.repoError)
 
 			// 创建服务
-			service := services.NewForumService(mockForumRepo, mockUserRepo)
+			service := NewForumService(mockForumRepo, mockUserRepo)
 
 			// 执行测试
 			filters := map[string]interface{}{}
@@ -536,7 +535,7 @@ func TestForumService_CreateReply(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewForumService(mockForumRepo, mockUserRepo)
+			service := NewForumService(mockForumRepo, mockUserRepo)
 
 			// 执行测试
 			err := service.CreateReply(tt.reply)
@@ -649,7 +648,7 @@ func TestForumService_GetReplies(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewForumService(mockForumRepo, mockUserRepo)
+			service := NewForumService(mockForumRepo, mockUserRepo)
 
 			// 执行测试
 			result, total, err := service.ListReplies(tt.postID, tt.page, tt.limit)
@@ -766,7 +765,7 @@ func TestForumService_LikePost(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewForumService(mockForumRepo, mockUserRepo)
+			service := NewForumService(mockForumRepo, mockUserRepo)
 
 			// 执行测试
 			err := service.ToggleLike(tt.userID, postIDPtr, nil)
@@ -882,7 +881,7 @@ func TestForumService_UnlikePost(t *testing.T) {
 			}
 
 			// 创建服务
-			service := services.NewForumService(mockForumRepo, mockUserRepo)
+			service := NewForumService(mockForumRepo, mockUserRepo)
 
 			// 执行测试
 			err := service.ToggleLike(tt.userID, postIDPtr, nil)
@@ -913,7 +912,7 @@ func TestForumService_GetLikeCount(t *testing.T) {
 
 	mockForumRepo.On("GetLikeCount", postIDPtr, (*uint)(nil)).Return(expectedCount, nil)
 
-	service := services.NewForumService(mockForumRepo, mockUserRepo)
+	service := NewForumService(mockForumRepo, mockUserRepo)
 	result, err := service.GetLikeCount(postIDPtr, nil)
 
 	assert.NoError(t, err)
@@ -933,7 +932,7 @@ func TestForumService_CheckUserLike(t *testing.T) {
 
 	mockForumRepo.On("CheckLikeExists", userID, postIDPtr, (*uint)(nil)).Return(expectedLiked, nil)
 
-	service := services.NewForumService(mockForumRepo, mockUserRepo)
+	service := NewForumService(mockForumRepo, mockUserRepo)
 	result, err := service.CheckUserLike(userID, postIDPtr, nil)
 
 	assert.NoError(t, err)
