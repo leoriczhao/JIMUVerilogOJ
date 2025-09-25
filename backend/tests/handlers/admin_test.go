@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-// MockAdminService is a mock for services.AdminService
+// MockAdminService is a mock for handlers.AdminService
 type MockAdminService struct {
 	mock.Mock
 }
