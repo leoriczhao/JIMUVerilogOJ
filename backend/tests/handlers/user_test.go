@@ -105,9 +105,6 @@ func TestUserHandler_Register(t *testing.T) {
 	})
 }
 
-// Note: Testing Login is tricky because it involves bcrypt and JWT generation.
-// A full test would require mocking these, but for this scope, we focus on the service interaction.
-
 func TestUserHandler_GetProfile(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
@@ -166,7 +163,6 @@ func TestUserHandler_Login(t *testing.T) {
 	handler := handlers.NewUserHandler(mockService)
 
 	password := "password123"
-	// We need to import "golang.org/x/crypto/bcrypt" for this
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	req := dto.UserLoginRequest{Username: "testuser", Password: password}
