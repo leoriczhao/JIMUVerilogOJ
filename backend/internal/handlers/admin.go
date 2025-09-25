@@ -7,12 +7,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AdminHandler 处理管理端接口
-type AdminHandler struct {
-	adminService *services.AdminService
+// AdminService defines the interface for the admin service.
+type AdminService interface {
+	GetSystemStats() (*services.SystemStats, error)
 }
 
-func NewAdminHandler(adminService *services.AdminService) *AdminHandler {
+// AdminHandler 处理管理端接口
+type AdminHandler struct {
+	adminService AdminService
+}
+
+func NewAdminHandler(adminService AdminService) *AdminHandler {
 	return &AdminHandler{adminService: adminService}
 }
 
