@@ -26,9 +26,9 @@ type UserHandler struct {
 }
 
 // NewUserHandler 创建用户处理器
-func NewUserHandler(userService interface{}) *UserHandler {
+func NewUserHandler(userService UserService) *UserHandler {
 	return &UserHandler{
-		userService: userService.(UserService),
+		userService: userService,
 	}
 }
 
