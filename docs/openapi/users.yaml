@@ -34,7 +34,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/RegisterResponse'
         '400':
           description: 请求参数错误
           content:
@@ -80,7 +80,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/UserProfileResponse'
         '401':
           description: 未授权
           content:
@@ -106,7 +106,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/UpdateProfileResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
 components:
   securitySchemes:
@@ -123,8 +129,6 @@ components:
           type: string
         message:
           type: string
-        code:
-          type: integer
 
     User:
       type: object
@@ -146,18 +150,10 @@ components:
         role:
           type: string
           enum: [student, teacher, admin, super_admin]
-        solved:
-          type: integer
-        submitted:
-          type: integer
-        rating:
-          type: integer
-        is_active:
-          type: boolean
         created_at:
           type: string
           format: date-time
-        last_login_at:
+        updated_at:
           type: string
           format: date-time
 
@@ -187,6 +183,17 @@ components:
         student_id:
           type: string
           maxLength: 20
+        role:
+          type: string
+          enum: [student, teacher, admin, super_admin]
+
+    RegisterResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
 
     LoginRequest:
       type: object
@@ -209,6 +216,12 @@ components:
         expires_in:
           type: integer
 
+    UserProfileResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+
     UpdateProfileRequest:
       type: object
       properties:
@@ -223,3 +236,11 @@ components:
         student_id:
           type: string
           maxLength: 20
+
+    UpdateProfileResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'

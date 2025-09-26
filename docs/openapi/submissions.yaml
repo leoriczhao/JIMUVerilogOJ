@@ -51,7 +51,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SubmissionList'
+                $ref: '#/components/schemas/SubmissionListResponse'
 
     post:
       tags:
@@ -64,14 +64,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateSubmissionRequest'
+              $ref: '#/components/schemas/SubmissionCreateRequest'
       responses:
         '201':
           description: 提交成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Submission'
+                $ref: '#/components/schemas/SubmissionCreateResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /submissions/{id}:
     get:
@@ -90,7 +96,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Submission'
+                $ref: '#/components/schemas/SubmissionDetailsResponse'
+        '404':
+          description: 提交记录不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
     delete:
       tags:
@@ -110,10 +122,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                $ref: '#/components/schemas/SubmissionDeleteResponse'
 
   /submissions/user:
     get:
@@ -139,7 +148,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SubmissionList'
+                $ref: '#/components/schemas/SubmissionListResponse'
 
   /submissions/stats:
     get:
@@ -154,18 +163,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  total_submissions:
-                    type: integer
-                  accepted_submissions:
-                    type: integer
-                  acceptance_rate:
-                    type: number
-                  average_score:
-                    type: number
-                  solved_problems:
-                    type: integer
+                $ref: '#/components/schemas/SubmissionStatsResponse'
 
 components:
   securitySchemes:
@@ -182,91 +180,16 @@ components:
           type: string
         message:
           type: string
-        code:
-          type: integer
-
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-        username:
-          type: string
-        email:
-          type: string
-        nickname:
-          type: string
-        avatar:
-          type: string
-        school:
-          type: string
-        student_id:
-          type: string
-        role:
-          type: string
-          enum: [student, teacher, admin, super_admin]
-        solved:
-          type: integer
-        submitted:
-          type: integer
-        rating:
-          type: integer
-        is_active:
-          type: boolean
-        created_at:
-          type: string
-          format: date-time
-        last_login_at:
-          type: string
-          format: date-time
-
-    Problem:
-      type: object
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        description:
-          type: string
-        input_desc:
-          type: string
-        output_desc:
-          type: string
-        difficulty:
-          type: string
-          enum: [Easy, Medium, Hard]
-        category:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        time_limit:
-          type: integer
-        memory_limit:
-          type: integer
-        submit_count:
-          type: integer
-        accepted_count:
-          type: integer
-        is_public:
-          type: boolean
-        author:
-          $ref: '#/components/schemas/User'
-        created_at:
-          type: string
-          format: date-time
 
     Submission:
       type: object
       properties:
         id:
           type: integer
-        user:
-          $ref: '#/components/schemas/User'
-        problem:
-          $ref: '#/components/schemas/Problem'
+        user_id:
+          type: integer
+        problem_id:
+          type: integer
         code:
           type: string
         language:
@@ -274,10 +197,6 @@ components:
         status:
           type: string
         score:
-          type: integer
-        run_time:
-          type: integer
-        memory:
           type: integer
         error_message:
           type: string
@@ -288,8 +207,11 @@ components:
         created_at:
           type: string
           format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
-    SubmissionList:
+    SubmissionListResponse:
       type: object
       properties:
         submissions:
@@ -303,7 +225,7 @@ components:
         limit:
           type: integer
 
-    CreateSubmissionRequest:
+    SubmissionCreateRequest:
       type: object
       required:
         - problem_id
@@ -315,4 +237,42 @@ components:
           type: string
         language:
           type: string
-          default: verilog
+
+    SubmissionCreateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        submission:
+          $ref: '#/components/schemas/Submission'
+
+    SubmissionDetailsResponse:
+      type: object
+      properties:
+        submission:
+          $ref: '#/components/schemas/Submission'
+
+    SubmissionDeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    SubmissionStats:
+      type: object
+      properties:
+        total_submissions:
+          type: integer
+        accepted_submissions:
+          type: integer
+        solved_problems:
+          type: integer
+        acceptance_rate:
+          type: number
+          format: float
+
+    SubmissionStatsResponse:
+      type: object
+      properties:
+        stats:
+          $ref: '#/components/schemas/SubmissionStats'
