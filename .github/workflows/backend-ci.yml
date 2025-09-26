@@ -1,0 +1,71 @@
+name: Backend Coverage Check
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+jobs:
+  coverage:
+    name: Test coverage
+    runs-on: ubuntu-latest
+    env:
+      GOFLAGS: -mod=mod
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Static analysis
+        run: go vet ./...
+
+      - name: Run targeted tests with coverage
+        run: |
+          go test -covermode=atomic -coverprofile=coverage.out ./internal/handlers/... ./internal/repository/... ./internal/services/...
+
+      - name: Enforce minimum coverage threshold
+        run: |
+          go tool cover -func=coverage.out | tee coverage.txt
+          python <<'PY'
+import sys
+from pathlib import Path
+
+threshold = 60.0
+coverage_file = Path('coverage.txt')
+
+for line in coverage_file.read_text().splitlines():
+    if line.startswith('total:'):
+        coverage_str = line.split()[-1].rstrip('%')
+        coverage = float(coverage_str)
+        if coverage < threshold:
+            print(f"Coverage check failed: {coverage:.2f}% < required {threshold:.2f}%")
+            sys.exit(1)
+        else:
+            print(f"Coverage check passed: {coverage:.2f}% >= required {threshold:.2f}%")
+            sys.exit(0)
+
+print('Unable to determine total coverage from coverage.txt', file=sys.stderr)
+sys.exit(1)
+PY
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage.txt
