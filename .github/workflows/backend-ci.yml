@@ -41,27 +41,7 @@ jobs:
       - name: Enforce minimum coverage threshold
         run: |
           go tool cover -func=coverage.out | tee coverage.txt
-          python <<'PY'
-import sys
-from pathlib import Path
-
-threshold = 60.0
-coverage_file = Path('coverage.txt')
-
-for line in coverage_file.read_text().splitlines():
-    if line.startswith('total:'):
-        coverage_str = line.split()[-1].rstrip('%')
-        coverage = float(coverage_str)
-        if coverage < threshold:
-            print(f"Coverage check failed: {coverage:.2f}% < required {threshold:.2f}%")
-            sys.exit(1)
-        else:
-            print(f"Coverage check passed: {coverage:.2f}% >= required {threshold:.2f}%")
-            sys.exit(0)
-
-print('Unable to determine total coverage from coverage.txt', file=sys.stderr)
-sys.exit(1)
-PY
+          python -c "import sys, pathlib; threshold=60.0; coverage_file=pathlib.Path('coverage.txt'); lines=coverage_file.read_text().splitlines(); total=next((line.split()[-1] for line in lines if line.startswith('total:')), None); if total is None: print('Unable to determine total coverage from coverage.txt', file=sys.stderr); sys.exit(1); coverage=float(total.rstrip('%')); if coverage < threshold: print(f'Coverage check failed: {coverage:.2f}% < required {threshold:.2f}%'); sys.exit(1); print(f'Coverage check passed: {coverage:.2f}% >= required {threshold:.2f}%')"
 
       - name: Upload coverage report
         if: always()
