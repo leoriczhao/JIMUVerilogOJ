@@ -33,24 +33,18 @@ paths:
           schema:
             type: integer
             default: 20
+        - name: category
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: 获取成功
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  news:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/News'
-                  total:
-                    type: integer
-                  page:
-                    type: integer
-                  limit:
-                    type: integer
+                $ref: '#/components/schemas/NewsListResponse'
+
     post:
       tags:
         - 新闻管理
@@ -69,10 +63,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  news:
-                    $ref: '#/components/schemas/News'
+                $ref: '#/components/schemas/NewsCreateResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /news/{id}:
     get:
@@ -91,10 +88,14 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  news:
-                    $ref: '#/components/schemas/News'
+                $ref: '#/components/schemas/NewsDetailsResponse'
+        '404':
+          description: 新闻不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
     put:
       tags:
         - 新闻管理
@@ -116,6 +117,11 @@ paths:
       responses:
         '200':
           description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsUpdateResponse'
+
     delete:
       tags:
         - 新闻管理
@@ -131,6 +137,10 @@ paths:
       responses:
         '200':
           description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsDeleteResponse'
 
 components:
   securitySchemes:
@@ -147,43 +157,6 @@ components:
           type: string
         message:
           type: string
-        code:
-          type: integer
-
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-        username:
-          type: string
-        email:
-          type: string
-        nickname:
-          type: string
-        avatar:
-          type: string
-        school:
-          type: string
-        student_id:
-          type: string
-        role:
-          type: string
-          enum: [student, teacher, admin, super_admin]
-        solved:
-          type: integer
-        submitted:
-          type: integer
-        rating:
-          type: integer
-        is_active:
-          type: boolean
-        created_at:
-          type: string
-          format: date-time
-        last_login_at:
-          type: string
-          format: date-time
 
     News:
       type: object
@@ -204,14 +177,30 @@ components:
             type: string
         is_published:
           type: boolean
-        author:
-          $ref: '#/components/schemas/User'
+        author_id:
+          type: integer
+        view_count:
+          type: integer
         created_at:
           type: string
           format: date-time
         updated_at:
           type: string
           format: date-time
+
+    NewsListResponse:
+      type: object
+      properties:
+        news:
+          type: array
+          items:
+            $ref: '#/components/schemas/News'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
 
     CreateNewsRequest:
       type: object
@@ -223,9 +212,24 @@ components:
           type: string
         content:
           type: string
+        summary:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
         is_published:
           type: boolean
-          default: false
+
+    NewsCreateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        news:
+          $ref: '#/components/schemas/News'
 
     UpdateNewsRequest:
       type: object
@@ -234,5 +238,33 @@ components:
           type: string
         content:
           type: string
+        summary:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
         is_published:
           type: boolean
+
+    NewsUpdateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        news:
+          $ref: '#/components/schemas/News'
+
+    NewsDeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    NewsDetailsResponse:
+      type: object
+      properties:
+        news:
+          $ref: '#/components/schemas/News'
