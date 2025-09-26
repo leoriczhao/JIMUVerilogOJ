@@ -48,7 +48,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ProblemList'
+                $ref: '#/components/schemas/ProblemListResponse'
 
     post:
       tags:
@@ -61,14 +61,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateProblemRequest'
+              $ref: '#/components/schemas/ProblemCreateRequest'
       responses:
         '201':
           description: 创建成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: '#/components/schemas/ProblemCreateResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /problems/{id}:
     get:
@@ -87,7 +93,65 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Problem'
+                $ref: '#/components/schemas/ProblemDetailsResponse'
+        '404':
+          description: 题目不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - 题目管理
+      summary: 更新题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProblemUpdateRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemUpdateResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - 题目管理
+      summary: 删除题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDeleteResponse'
 
   /problems/{id}/testcases:
     get:
@@ -106,12 +170,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  test_cases:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/TestCase'
+                $ref: '#/components/schemas/TestCaseListResponse'
 
     post:
       tags:
@@ -130,14 +189,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TestCase'
+              $ref: '#/components/schemas/TestCaseRequest'
       responses:
         '201':
           description: 添加成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TestCase'
+                $ref: '#/components/schemas/TestCaseAddResponse'
 
   /problems/{id}/submissions:
     get:
@@ -166,7 +225,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SubmissionList'
+                $ref: '#/components/schemas/SubmissionListResponse'
 
 components:
   securitySchemes:
@@ -183,43 +242,6 @@ components:
           type: string
         message:
           type: string
-        code:
-          type: integer
-
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-        username:
-          type: string
-        email:
-          type: string
-        nickname:
-          type: string
-        avatar:
-          type: string
-        school:
-          type: string
-        student_id:
-          type: string
-        role:
-          type: string
-          enum: [student, teacher, admin, super_admin]
-        solved:
-          type: integer
-        submitted:
-          type: integer
-        rating:
-          type: integer
-        is_active:
-          type: boolean
-        created_at:
-          type: string
-          format: date-time
-        last_login_at:
-          type: string
-          format: date-time
 
     Problem:
       type: object
@@ -247,19 +269,22 @@ components:
           type: integer
         memory_limit:
           type: integer
-        submit_count:
-          type: integer
-        accepted_count:
-          type: integer
         is_public:
           type: boolean
-        author:
-          $ref: '#/components/schemas/User'
+        author_id:
+          type: integer
+        submit_count:
+          type: integer
+        accept_count:
+          type: integer
         created_at:
           type: string
           format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
-    ProblemList:
+    ProblemListResponse:
       type: object
       properties:
         problems:
@@ -273,11 +298,12 @@ components:
         limit:
           type: integer
 
-    CreateProblemRequest:
+    ProblemCreateRequest:
       type: object
       required:
         - title
         - description
+        - difficulty
       properties:
         title:
           type: string
@@ -305,10 +331,68 @@ components:
         test_cases:
           type: array
           items:
-            $ref: '#/components/schemas/TestCase'
+            $ref: '#/components/schemas/TestCaseRequest'
 
-    TestCase:
+    ProblemCreateResponse:
       type: object
+      properties:
+        message:
+          type: string
+        problem:
+          $ref: '#/components/schemas/Problem'
+
+    ProblemUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        input_desc:
+          type: string
+        output_desc:
+          type: string
+        difficulty:
+          type: string
+          enum: [Easy, Medium, Hard]
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        time_limit:
+          type: integer
+        memory_limit:
+          type: integer
+        is_public:
+          type: boolean
+
+    ProblemUpdateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        problem:
+          $ref: '#/components/schemas/Problem'
+
+    ProblemDeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    ProblemDetailsResponse:
+      type: object
+      properties:
+        problem:
+          $ref: '#/components/schemas/Problem'
+
+    TestCaseRequest:
+      type: object
+      required:
+        - input
+        - output
       properties:
         input:
           type: string
@@ -317,15 +401,51 @@ components:
         is_sample:
           type: boolean
 
+    TestCaseResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        problem_id:
+          type: integer
+        input:
+          type: string
+        output:
+          type: string
+        is_sample:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    TestCaseListResponse:
+      type: object
+      properties:
+        test_cases:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCaseResponse'
+
+    TestCaseAddResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        test_case:
+          $ref: '#/components/schemas/TestCaseResponse'
+
     Submission:
       type: object
       properties:
         id:
           type: integer
-        user:
-          $ref: '#/components/schemas/User'
-        problem:
-          $ref: '#/components/schemas/Problem'
+        user_id:
+          type: integer
+        problem_id:
+          type: integer
         code:
           type: string
         language:
@@ -333,10 +453,6 @@ components:
         status:
           type: string
         score:
-          type: integer
-        run_time:
-          type: integer
-        memory:
           type: integer
         error_message:
           type: string
@@ -347,8 +463,11 @@ components:
         created_at:
           type: string
           format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
-    SubmissionList:
+    SubmissionListResponse:
       type: object
       properties:
         submissions:
