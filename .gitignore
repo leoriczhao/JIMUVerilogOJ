@@ -35,9 +35,6 @@ judge-service/main
 *.out
 coverage.html
 
-# Go modules
-go.sum
-
 # Node.js
 node_modules/
 npm-debug.log*
@@ -106,10 +103,6 @@ vendor/
 
 # Go workspace file
 go.work
-
-# Wire generated files
-*wire_gen.go
-wire_gen.go
 
 # Test files
 test-results/
