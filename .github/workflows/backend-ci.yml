@@ -29,11 +29,19 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Install tooling
+        run: |
+          go install github.com/google/wire/cmd/wire@v0.6.0
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.56.2
+
       - name: Verify Wire generated code
         run: make wire-check
 
       - name: Static analysis
         run: make vet
+
+      - name: Run lint
+        run: make lint
 
       - name: Run coverage check
         run: make coverage-check
@@ -44,3 +52,7 @@ jobs:
         with:
           name: backend-coverage
           path: backend/coverage.txt
+
+      - name: Clean coverage artifacts
+        if: always()
+        run: rm -f coverage.out coverage.txt

@@ -101,7 +101,9 @@ fmt:
 
 # 代码检查
 vet:
-	@echo "Running go vet..."
+	@echo "Running go vet (default build)..."
+	go vet ./...
+	@echo "Running go vet (wireinject build)..."
 	go vet -tags=wireinject ./...
 
 # 运行所有检查（格式化、vet、测试）
