@@ -102,7 +102,7 @@ fmt:
 # 代码检查
 vet:
 	@echo "Running go vet..."
-	go vet ./...
+	go vet -tags=wireinject ./...
 
 # 运行所有检查（格式化、vet、测试）
 check: fmt vet lint test
