@@ -29,6 +29,9 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Verify Wire generated code
+        run: make wire-check
+
       - name: Static analysis
         run: make vet
 

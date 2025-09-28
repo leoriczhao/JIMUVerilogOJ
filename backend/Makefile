@@ -4,7 +4,7 @@
         clean build run deps fmt vet check help \
         docker-build docker-run docker-stop docker-clean \
         dev-setup dev-start dev-stop \
-        lint security-check mod-tidy wire-gen
+        lint security-check mod-tidy wire-gen wire-check
 
 # 默认目标
 all: check
@@ -140,6 +140,17 @@ wire-gen:
 	else \
 		echo "wire not installed, run: go install github.com/google/wire/cmd/wire@latest"; \
 	fi
+
+# 校验Wire生成代码
+wire-check:
+	@echo "Verifying Wire generated code..."
+	@if ! command -v wire >/dev/null 2>&1; then \
+		echo "wire not installed, installing..."; \
+		go install github.com/google/wire/cmd/wire@latest; \
+	fi
+	@wire ./internal/...
+	@git diff --quiet internal/wire_gen.go || \
+		(echo "wire_gen.go is out of date. Run 'make wire-gen' and commit the changes."; exit 1)
 
 # Docker相关操作
 docker-build:
