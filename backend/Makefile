@@ -9,22 +9,37 @@
 # 默认目标
 all: check
 
+COVERAGE_THRESHOLD ?= 60.0
+
 # 运行所有测试
 test:
 	@echo "Running all tests..."
-	go test ./tests/... -short
+	go test ./internal/handlers/... ./internal/services/... ./internal/repository/... -short
 
 # 运行测试并显示详细输出
 test-verbose:
 	@echo "Running all tests with verbose output..."
-	go test ./tests/... -v
+	go test ./internal/handlers/... ./internal/services/... ./internal/repository/... -v
 
 # 运行测试并生成覆盖率报告
 test-coverage:
 	@echo "Running tests with coverage..."
-	go test ./tests/... -coverprofile=coverage.out
+	go test ./internal/handlers/... ./internal/services/... ./internal/repository/... -covermode=atomic -coverprofile=coverage.out
 	@echo "Coverage report generated: coverage.out"
 	@echo "To view HTML coverage report, run: make coverage-html"
+
+# 校验覆盖率阈值
+coverage-check: test-coverage
+	@echo "Checking coverage threshold..."
+	go tool cover -func=coverage.out | tee coverage.txt
+	@threshold=$(COVERAGE_THRESHOLD); \
+	total_line=$$(awk '/^total:/ {print}' coverage.txt); \
+	if [ -z "$$total_line" ]; then \
+		echo "total coverage not found" >&2; \
+		exit 1; \
+	fi; \
+	coverage=$$(printf "%s\n" "$$total_line" | awk '{gsub(/%/, "", $$NF); print $$NF}'); \
+	awk -v cov="$$coverage" -v thr="$$threshold" 'BEGIN {cov += 0; thr += 0; if (cov < thr) { printf("Coverage check failed: %.2f%% < required %.2f%%\n", cov, thr); exit 1 } else { printf("Coverage check passed: %.2f%% >= required %.2f%%\n", cov, thr); exit 0 }}'
 
 # 生成HTML覆盖率报告
 coverage-html: coverage.out
@@ -35,27 +50,27 @@ coverage-html: coverage.out
 # 运行服务层测试
 test-services:
 	@echo "Running services tests..."
-	go test ./tests/services/... -v
+	go test ./internal/services/... -v
 
 # 运行用户服务测试
 test-user:
 	@echo "Running user service tests..."
-	go test ./tests/services/ -run TestUserService -v
+	go test ./internal/services -run TestUserService -v
 
 # 运行题目服务测试
 test-problem:
 	@echo "Running problem service tests..."
-	go test ./tests/services/ -run TestProblemService -v
+	go test ./internal/services -run TestProblemService -v
 
 # 运行论坛服务测试
 test-forum:
 	@echo "Running forum service tests..."
-	go test ./tests/services/ -run TestForumService -v
+	go test ./internal/services -run TestForumService -v
 
 # 运行新闻服务测试
 test-news:
 	@echo "Running news service tests..."
-	go test ./tests/services/ -run TestNewsService -v
+	go test ./internal/services -run TestNewsService -v
 
 # 清理生成的文件
 clean:

@@ -30,44 +30,10 @@ jobs:
         run: go mod download
 
       - name: Static analysis
-        run: go vet ./internal/handlers/... ./internal/repository/... ./internal/services/...
+        run: make vet
 
-      - name: Run targeted tests with coverage
-        run: |
-          go test -covermode=atomic -coverprofile=coverage.out ./internal/handlers/... ./internal/repository/... ./internal/services/...
-
-      - name: Enforce minimum coverage threshold
-        run: |
-          go tool cover -func=coverage.out | tee coverage.txt
-          python - <<'PY'
-          import sys
-          from pathlib import Path
-
-          threshold = 60.0
-          coverage_file = Path("coverage.txt")
-
-          if not coverage_file.exists():
-              print("Coverage file coverage.txt not found", file=sys.stderr)
-              sys.exit(1)
-
-          lines = coverage_file.read_text().splitlines()
-          total_line = next((line for line in lines if line.startswith("total:")), None)
-          if total_line is None:
-              print("Unable to determine total coverage from coverage.txt", file=sys.stderr)
-              sys.exit(1)
-
-          try:
-              coverage = float(total_line.split()[-1].rstrip("%"))
-          except (IndexError, ValueError):
-              print(f"Unable to parse coverage percentage from line: {total_line}", file=sys.stderr)
-              sys.exit(1)
-
-          if coverage < threshold:
-              print(f"Coverage check failed: {coverage:.2f}% < required {threshold:.2f}%")
-              sys.exit(1)
-
-          print(f"Coverage check passed: {coverage:.2f}% >= required {threshold:.2f}%")
-          PY
+      - name: Run coverage check
+        run: make coverage-check
 
       - name: Upload coverage report
         if: always()
