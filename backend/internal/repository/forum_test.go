@@ -29,37 +29,37 @@ func setupForumTestDB(t *testing.T) (*gorm.DB, services.UserRepository) {
 }
 
 func TestForumRepository_CreateAndGetPost(t *testing.T) {
-    db, userRepo := setupForumTestDB(t)
-    repo := NewForumRepository(db)
+	db, userRepo := setupForumTestDB(t)
+	repo := NewForumRepository(db)
 
-    // 1. Create a user first, as posts require an author.
-    user := &domain.User{Username: "post_author", Email: "author@test.com", Password: "password"}
-    err := userRepo.Create(user)
-    assert.NoError(t, err)
-    assert.NotZero(t, user.ID)
+	// 1. Create a user first, as posts require an author.
+	user := &domain.User{Username: "post_author", Email: "author@test.com", Password: "password"}
+	err := userRepo.Create(user)
+	assert.NoError(t, err)
+	assert.NotZero(t, user.ID)
 
-    // 2. Create a post
-    post := &domain.ForumPost{
-        Title:    "Test Post Title",
-        Content:  "This is the content of the test post.",
-        AuthorID: user.ID,
-        Category: "general",
-        Tags:     []string{"go", "testing"},
-    }
-    err = repo.CreatePost(post)
-    assert.NoError(t, err)
-    assert.NotZero(t, post.ID)
+	// 2. Create a post
+	post := &domain.ForumPost{
+		Title:    "Test Post Title",
+		Content:  "This is the content of the test post.",
+		AuthorID: user.ID,
+		Category: "general",
+		Tags:     []string{"go", "testing"},
+	}
+	err = repo.CreatePost(post)
+	assert.NoError(t, err)
+	assert.NotZero(t, post.ID)
 
-    // 3. Verify the post can be retrieved from the DB
-    retrievedPost, err := repo.GetPostByID(post.ID)
-    assert.NoError(t, err)
-    assert.NotNil(t, retrievedPost)
-    assert.Equal(t, "Test Post Title", retrievedPost.Title)
-    assert.Equal(t, user.ID, retrievedPost.AuthorID)
-    assert.Equal(t, []string{"go", "testing"}, retrievedPost.Tags)
-    // Check that the associated user is preloaded correctly
-    assert.NotNil(t, retrievedPost.User)
-    assert.Equal(t, user.Username, retrievedPost.User.Username)
+	// 3. Verify the post can be retrieved from the DB
+	retrievedPost, err := repo.GetPostByID(post.ID)
+	assert.NoError(t, err)
+	assert.NotNil(t, retrievedPost)
+	assert.Equal(t, "Test Post Title", retrievedPost.Title)
+	assert.Equal(t, user.ID, retrievedPost.AuthorID)
+	assert.Equal(t, []string{"go", "testing"}, retrievedPost.Tags)
+	// Check that the associated user is preloaded correctly
+	assert.NotNil(t, retrievedPost.User)
+	assert.Equal(t, user.Username, retrievedPost.User.Username)
 }
 
 func TestForumRepository_UpdatePost(t *testing.T) {
@@ -189,7 +189,6 @@ func TestForumRepository_CreateAndGetReplies(t *testing.T) {
 	reply2 := &domain.ForumReply{Content: "Reply 2", PostID: post.ID, AuthorID: user.ID, ParentID: &reply1.ID}
 	repo.CreateReply(reply2)
 	assert.NotZero(t, reply2.ID)
-
 
 	// Get replies
 	replies, total, err := repo.GetRepliesByPostID(post.ID, 1, 10)

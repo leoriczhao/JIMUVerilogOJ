@@ -36,10 +36,10 @@ func TestNewsRepository_CreateAndGet(t *testing.T) {
 	userRepo.Create(user)
 
 	news := &domain.News{
-		Title:       "Test News",
-		Content:     "News Content",
-		AuthorID:    user.ID,
-		IsFeatured:  true,
+		Title:      "Test News",
+		Content:    "News Content",
+		AuthorID:   user.ID,
+		IsFeatured: true,
 	}
 
 	err := repo.Create(news)

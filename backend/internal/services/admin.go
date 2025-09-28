@@ -50,4 +50,3 @@ func (s *AdminService) GetSystemStats() (*SystemStats, error) {
 		JudgesOnline: judgesOnline,
 	}, nil
 }
-
