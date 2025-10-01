@@ -55,18 +55,13 @@ func (r *ForumRepository) domainPostToModel(post *domain.ForumPost) *models.Foru
 
 // 转换函数：model -> domain
 func (r *ForumRepository) modelPostToDomain(post *models.ForumPost) *domain.ForumPost {
-	var tags []string
-	if post.Tags != "" {
-		json.Unmarshal([]byte(post.Tags), &tags)
-	}
-
 	domainPost := &domain.ForumPost{
 		ID:         post.ID,
 		Title:      post.Title,
 		Content:    post.Content,
 		AuthorID:   post.UserID,
 		Category:   post.Category,
-		Tags:       tags,
+		Tags:       parseModelTags(post.Tags),
 		ViewCount:  post.ViewCount,
 		ReplyCount: post.ReplyCount,
 		LikeCount:  post.LikeCount,

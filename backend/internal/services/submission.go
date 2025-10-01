@@ -2,8 +2,7 @@ package services
 
 import (
 	"errors"
-	"strconv"
-	"time"
+	"log"
 	"verilog-oj/backend/internal/domain"
 )
 
@@ -108,12 +107,12 @@ func (s *SubmissionService) CreateSubmission(problemID uint, code, language stri
 
 	// 更新题目的提交统计
 	if err := s.problemRepo.UpdateSubmitCount(problemID, 1); err != nil {
-		// 记录错误但不影响提交创建
+		log.Printf("failed to update problem submit count: %v", err)
 	}
 
 	// 更新用户的提交统计
 	if err := s.userRepo.UpdateStats(userID, user.Solved, user.Submitted+1); err != nil {
-		// 记录错误但不影响提交创建
+		log.Printf("failed to update user submit stats: %v", err)
 	}
 
 	return submission, nil
@@ -261,9 +260,4 @@ func (s *SubmissionService) DeleteSubmission(id uint, userID uint, userRole stri
 	}
 
 	return nil
-}
-
-// generateJudgeID 生成判题ID
-func generateJudgeID() string {
-	return strconv.FormatInt(time.Now().UnixNano(), 10)
 }

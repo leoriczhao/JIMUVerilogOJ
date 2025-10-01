@@ -29,17 +29,17 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          working-directory: backend
+
       - name: Verify Wire generated code
         run: make wire-check
 
       - name: Static analysis
         run: make vet
-
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: v1.56.2
-          working-directory: backend
 
       - name: Run coverage check
         run: make coverage-check
