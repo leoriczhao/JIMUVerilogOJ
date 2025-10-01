@@ -61,8 +61,8 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// 创建用户
-	user, err := h.userService.CreateUser(req.Username, req.Email, req.Password, req.Role)
+	// 创建用户 - 强制使用student角色,防止权限提升攻击
+	user, err := h.userService.CreateUser(req.Username, req.Email, req.Password, "student")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "registration_failed",
@@ -223,6 +223,71 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.UserUpdateResponse{
 		Message: "更新成功",
 		User:    dto.UserToResponse(user),
+	})
+}
+
+// ChangePassword 修改密码
+func (h *UserHandler) ChangePassword(c *gin.Context) {
+	// 从JWT中获取用户ID
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   "unauthorized",
+			"message": "未授权访问",
+		})
+		return
+	}
+
+	var req dto.UserChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_request",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	// 获取用户信息
+	user, err := h.userService.GetUserByID(userID.(uint))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "user_not_found",
+			"message": "用户不存在",
+		})
+		return
+	}
+
+	// 验证旧密码
+	if compareErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); compareErr != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":   "invalid_password",
+			"message": "原密码错误",
+		})
+		return
+	}
+
+	// 加密新密码
+	hashedPassword, hashErr := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if hashErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "password_hash_failed",
+			"message": "密码加密失败",
+		})
+		return
+	}
+
+	// 更新密码
+	user.Password = string(hashedPassword)
+	if updateErr := h.userService.UpdateUser(user); updateErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "update_failed",
+			"message": "密码修改失败：" + updateErr.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "密码修改成功",
 	})
 }
 

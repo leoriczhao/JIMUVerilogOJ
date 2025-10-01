@@ -30,3 +30,28 @@ func AdminOnly() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// TeacherOrAdmin 确保用户具备教师或管理员角色
+func TeacherOrAdmin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		roleValue, exists := c.Get("role")
+		if !exists {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"error":   "forbidden",
+				"message": "需要教师或管理员权限",
+			})
+			return
+		}
+
+		role, _ := roleValue.(string)
+		if role != "teacher" && role != "admin" && role != "super_admin" {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"error":   "forbidden",
+				"message": "需要教师或管理员权限",
+			})
+			return
+		}
+
+		c.Next()
+	}
+}

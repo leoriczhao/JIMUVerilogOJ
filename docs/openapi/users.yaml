@@ -114,6 +114,42 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /users/password:
+    put:
+      tags:
+        - 用户管理
+      summary: 修改密码
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: 密码修改成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 原密码错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -183,9 +219,6 @@ components:
         student_id:
           type: string
           maxLength: 20
-        role:
-          type: string
-          enum: [student, teacher, admin, super_admin]
 
     RegisterResponse:
       type: object
@@ -244,3 +277,16 @@ components:
           type: string
         user:
           $ref: '#/components/schemas/User'
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - old_password
+        - new_password
+      properties:
+        old_password:
+          type: string
+          minLength: 6
+        new_password:
+          type: string
+          minLength: 6
