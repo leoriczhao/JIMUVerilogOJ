@@ -65,7 +65,8 @@ func TestUserHandler_Register(t *testing.T) {
 
 		// Setup mock expectations
 		mockService.On("GetUserByUsername", req.Username).Return(nil, nil)
-		mockService.On("CreateUser", req.Username, req.Email, req.Password, "").Return(createdUser, nil)
+		// Note: CreateUser now expects "student" role due to security fix
+		mockService.On("CreateUser", req.Username, req.Email, req.Password, "student").Return(createdUser, nil)
 		mockService.On("UpdateUser", createdUser).Return(nil)
 
 		// Prepare request

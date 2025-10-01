@@ -382,14 +382,23 @@ func TestProblemHandler_GetTestCases(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Params = []gin.Param{{Key: "id", Value: "1"}}
+		// Set user context for permission check
+		c.Set("user_id", uint(1))
+		c.Set("role", "admin")
 
 		mockService := new(MockProblemService)
 		handler := NewProblemHandler(mockService)
 
-		testCases := []domain.TestCase{
-			{ID: 1, ProblemID: 1, Input: "input1", Output: "output1"},
-			{ID: 2, ProblemID: 1, Input: "input2", Output: "output2"},
+		problem := &domain.Problem{
+			ID:       1,
+			AuthorID: 1,
+			Title:    "Test Problem",
 		}
+		testCases := []domain.TestCase{
+			{ID: 1, ProblemID: 1, Input: "input1", Output: "output1", IsSample: false},
+			{ID: 2, ProblemID: 1, Input: "input2", Output: "output2", IsSample: true},
+		}
+		mockService.On("GetProblem", uint(1)).Return(problem, nil)
 		mockService.On("GetTestCases", uint(1)).Return(testCases, nil)
 
 		handler.GetTestCases(c)
@@ -413,6 +422,110 @@ func TestProblemHandler_GetTestCases(t *testing.T) {
 		handler.GetTestCases(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("Student Only Sees Sample Test Cases", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = []gin.Param{{Key: "id", Value: "1"}}
+		// Set student context (not author, not privileged)
+		c.Set("user_id", uint(2))
+		c.Set("role", "student")
+
+		mockService := new(MockProblemService)
+		handler := NewProblemHandler(mockService)
+
+		problem := &domain.Problem{
+			ID:       1,
+			AuthorID: 1, // Different from user_id
+			Title:    "Test Problem",
+		}
+		testCases := []domain.TestCase{
+			{ID: 1, ProblemID: 1, Input: "input1", Output: "output1", IsSample: false},
+			{ID: 2, ProblemID: 1, Input: "input2", Output: "output2", IsSample: true},
+			{ID: 3, ProblemID: 1, Input: "input3", Output: "output3", IsSample: false},
+		}
+		mockService.On("GetProblem", uint(1)).Return(problem, nil)
+		mockService.On("GetTestCases", uint(1)).Return(testCases, nil)
+
+		handler.GetTestCases(c)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var response dto.TestCaseListResponse
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		// Student should only see 1 sample test case
+		assert.Equal(t, 1, len(response.TestCases))
+		assert.True(t, response.TestCases[0].IsSample)
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Author Sees All Test Cases", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = []gin.Param{{Key: "id", Value: "1"}}
+		// Set author context
+		c.Set("user_id", uint(1))
+		c.Set("role", "student")
+
+		mockService := new(MockProblemService)
+		handler := NewProblemHandler(mockService)
+
+		problem := &domain.Problem{
+			ID:       1,
+			AuthorID: 1, // Same as user_id
+			Title:    "Test Problem",
+		}
+		testCases := []domain.TestCase{
+			{ID: 1, ProblemID: 1, Input: "input1", Output: "output1", IsSample: false},
+			{ID: 2, ProblemID: 1, Input: "input2", Output: "output2", IsSample: true},
+		}
+		mockService.On("GetProblem", uint(1)).Return(problem, nil)
+		mockService.On("GetTestCases", uint(1)).Return(testCases, nil)
+
+		handler.GetTestCases(c)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var response dto.TestCaseListResponse
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		// Author should see all test cases
+		assert.Equal(t, 2, len(response.TestCases))
+		mockService.AssertExpectations(t)
+	})
+
+	t.Run("Teacher Sees All Test Cases", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = []gin.Param{{Key: "id", Value: "1"}}
+		// Set teacher context
+		c.Set("user_id", uint(2))
+		c.Set("role", "teacher")
+
+		mockService := new(MockProblemService)
+		handler := NewProblemHandler(mockService)
+
+		problem := &domain.Problem{
+			ID:       1,
+			AuthorID: 1, // Different from user_id
+			Title:    "Test Problem",
+		}
+		testCases := []domain.TestCase{
+			{ID: 1, ProblemID: 1, Input: "input1", Output: "output1", IsSample: false},
+			{ID: 2, ProblemID: 1, Input: "input2", Output: "output2", IsSample: true},
+		}
+		mockService.On("GetProblem", uint(1)).Return(problem, nil)
+		mockService.On("GetTestCases", uint(1)).Return(testCases, nil)
+
+		handler.GetTestCases(c)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		var response dto.TestCaseListResponse
+		err := json.Unmarshal(w.Body.Bytes(), &response)
+		assert.NoError(t, err)
+		// Teacher should see all test cases
+		assert.Equal(t, 2, len(response.TestCases))
+		mockService.AssertExpectations(t)
 	})
 }
 
