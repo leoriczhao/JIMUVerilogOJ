@@ -8,7 +8,7 @@ import (
 	"verilog-oj/backend/internal/dto"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
+	jwt "github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -84,6 +84,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 
 	if err := h.userService.UpdateUser(user); err != nil {
 		// 如果更新失败，至少返回基本用户信息
+		_ = c.Error(err)
 	}
 
 	c.JSON(http.StatusCreated, dto.UserRegisterResponse{

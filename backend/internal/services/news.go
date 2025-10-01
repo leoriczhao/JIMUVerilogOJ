@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"log"
 	"verilog-oj/backend/internal/domain"
 )
 
@@ -110,7 +111,7 @@ func (s *NewsService) GetNews(id uint) (*domain.News, error) {
 
 	// 更新浏览量
 	if err := s.newsRepo.IncrementViewCount(id); err != nil {
-		// 记录错误但不影响获取新闻
+		log.Printf("failed to increment news view count: %v", err)
 	}
 
 	return news, nil

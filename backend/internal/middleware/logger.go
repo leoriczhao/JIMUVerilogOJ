@@ -158,7 +158,7 @@ func (fl *FileLogger) cleanOldLogs() {
 
 	cutoff := time.Now().AddDate(0, 0, -fl.config.MaxAge)
 
-	filepath.Walk(fl.config.LogDir, func(path string, info os.FileInfo, err error) error {
+	if err := filepath.Walk(fl.config.LogDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil
 		}
@@ -168,7 +168,9 @@ func (fl *FileLogger) cleanOldLogs() {
 		}
 
 		return nil
-	})
+	}); err != nil {
+		os.Stderr.WriteString(fmt.Sprintf("[WARN] failed to clean logs: %v\n", err))
+	}
 }
 
 // FileLoggerMiddleware 文件日志中间件

@@ -7,7 +7,7 @@ import (
 	"verilog-oj/backend/internal/config"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
+	jwt "github.com/golang-jwt/jwt/v5"
 )
 
 // 从配置读取JWT密钥
