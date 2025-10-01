@@ -388,17 +388,14 @@ func (h *ProblemHandler) GetTestCases(c *gin.Context) {
 		return
 	}
 
-	// 权限检查: 作者、教师或管理员可以查看所有测试用例
-	userID, _ := c.Get("user_id")
+	// 权限检查: 作者或管理员可以查看所有测试用例
+	userIDValue, _ := c.Get("user_id")
 	roleValue, _ := c.Get("role")
 
-	var role string
-	if roleStr, ok := roleValue.(string); ok {
-		role = roleStr
-	}
+	userID, hasUserID := userIDValue.(uint)
+	role, _ := roleValue.(string)
 
-	isAuthor := userID != nil && problem.AuthorID == userID.(uint)
-	isTeacher := role == "teacher"
+	isAuthor := hasUserID && problem.AuthorID == userID
 	isAdmin := role == "admin" || role == "super_admin"
 
 	// 获取测试用例
@@ -414,8 +411,8 @@ func (h *ProblemHandler) GetTestCases(c *gin.Context) {
 	// 转换为DTO响应
 	var testCaseResponses []dto.TestCaseResponse
 	for _, tc := range testCases {
-		// 只有作者、教师和管理员可以看到所有测试用例，其他用户只能看样例
-		if !isAuthor && !isTeacher && !isAdmin && !tc.IsSample {
+		// 只有作者和管理员可以看到所有测试用例，其他用户只能看样例
+		if !isAuthor && !isAdmin && !tc.IsSample {
 			continue
 		}
 		testCaseResponses = append(testCaseResponses, dto.TestCaseDomainToResponse(&tc))
