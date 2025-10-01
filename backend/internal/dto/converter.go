@@ -6,6 +6,19 @@ import (
 	"verilog-oj/backend/internal/models"
 )
 
+func parseJSONTags(raw string) []string {
+	if raw == "" {
+		return nil
+	}
+
+	var tags []string
+	if err := json.Unmarshal([]byte(raw), &tags); err != nil {
+		return nil
+	}
+
+	return tags
+}
+
 // UserToResponse 将User模型转换为UserResponse
 func UserToResponse(user *domain.User) UserResponse {
 	return UserResponse{
@@ -24,11 +37,6 @@ func UserToResponse(user *domain.User) UserResponse {
 
 // ProblemToResponse 将Problem模型转换为ProblemResponse
 func ProblemToResponse(problem *models.Problem) ProblemResponse {
-	var tags []string
-	if problem.Tags != "" {
-		json.Unmarshal([]byte(problem.Tags), &tags)
-	}
-
 	response := ProblemResponse{
 		ID:          problem.ID,
 		Title:       problem.Title,
@@ -37,7 +45,7 @@ func ProblemToResponse(problem *models.Problem) ProblemResponse {
 		OutputDesc:  problem.OutputDesc,
 		Difficulty:  problem.Difficulty,
 		Category:    problem.Category,
-		Tags:        tags,
+		Tags:        parseJSONTags(problem.Tags),
 		TimeLimit:   problem.TimeLimit,
 		MemoryLimit: problem.MemoryLimit,
 		IsPublic:    problem.IsPublic,
@@ -89,17 +97,12 @@ func SubmissionToResponse(submission *models.Submission) SubmissionResponse {
 
 // ForumPostToResponse 将ForumPost模型转换为ForumPostResponse
 func ForumPostToResponse(post *models.ForumPost) ForumPostResponse {
-	var tags []string
-	if post.Tags != "" {
-		json.Unmarshal([]byte(post.Tags), &tags)
-	}
-
 	response := ForumPostResponse{
 		ID:         post.ID,
 		Title:      post.Title,
 		Content:    post.Content,
 		Category:   post.Category,
-		Tags:       tags,
+		Tags:       parseJSONTags(post.Tags),
 		ViewCount:  post.ViewCount,
 		ReplyCount: post.ReplyCount,
 		LikeCount:  post.LikeCount,
@@ -140,18 +143,13 @@ func ForumReplyToResponse(reply *models.ForumReply) ForumReplyResponse {
 
 // NewsToResponse 将News模型转换为NewsResponse
 func NewsToResponse(news *models.News) NewsResponse {
-	var tags []string
-	if news.Tags != "" {
-		json.Unmarshal([]byte(news.Tags), &tags)
-	}
-
 	return NewsResponse{
 		ID:          news.ID,
 		Title:       news.Title,
 		Content:     news.Content,
 		Summary:     news.Summary,
 		Category:    news.Category,
-		Tags:        tags,
+		Tags:        parseJSONTags(news.Tags),
 		IsPublished: news.IsPublished,
 		AuthorID:    news.AuthorID,
 		ViewCount:   news.ViewCount,

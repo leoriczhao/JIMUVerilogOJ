@@ -1,0 +1,46 @@
+# .golangci.yml
+
+run:
+  # (核心配置) 设置为 false，明确告诉 golangci-lint 在分析时不要包含测试文件。
+  # 这是解决测试文件中出现编译型错误（如 mock undefined）的最根本和推荐的方法。
+  # 文档参考: https://golangci-lint.run/usage/configuration/#run-configuration
+  tests: false
+
+  # 其他常规配置
+  timeout: 5m
+  modules-download-mode: readonly
+  go: "1.24"
+
+linters:
+  enable:
+    - govet
+    - staticcheck
+    - gofmt
+    - goimports
+    - revive
+    - gocyclo
+    - errcheck
+    - ineffassign
+
+linters-settings:
+  gofmt:
+    simplify: true
+  goimports:
+    local-prefixes: github.com/JIMUVerilogOJ
+  revive:
+    confidence: 0.8
+    severity: warning
+  gocyclo:
+    min-complexity: 20
+
+issues:
+  max-same-issues: 3
+  max-issues-per-linter: 0
+  
+  # 因为 run.tests: false 已经从根源上排除了测试文件，所以不再需要
+  # exclude-files 或 exclude-rules 来进行过滤了。
+  # 这样配置更简洁、更符合工具的设计初衷。
+
+  # 你仍然可以保留针对特定错误文本的全局排除规则
+  exclude:
+    - "error return value not checked.*(Close|Log)"

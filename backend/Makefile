@@ -1,10 +1,10 @@
 # Makefile for Verilog OJ Backend
 
 .PHONY: test test-verbose test-coverage test-services test-user test-problem test-forum test-news \
-        clean build run deps fmt vet check help \
+        clean build run deps fmt vet lint check help \
         docker-build docker-run docker-stop docker-clean \
         dev-setup dev-start dev-stop \
-        lint security-check mod-tidy wire-gen wire-check
+        security-check mod-tidy wire-gen wire-check
 
 # 默认目标
 all: check
@@ -106,18 +106,19 @@ vet:
 	@echo "Running go vet (wireinject build)..."
 	go vet -tags=wireinject ./...
 
-# 运行所有检查（格式化、vet、测试）
-check: fmt vet lint test
-	@echo "All checks passed!"
-
-# 代码质量检查
+# 静态分析
 lint:
 	@echo "Running golangci-lint..."
 	@if command -v golangci-lint >/dev/null 2>&1; then \
-		golangci-lint run; \
+		golangci-lint run ./...; \
 	else \
-		echo "golangci-lint not installed, skipping..."; \
+		echo "golangci-lint not installed, install via: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest"; \
+		exit 1; \
 	fi
+
+# 运行所有检查（格式化、静态分析、vet、测试）
+check: fmt lint vet test
+	@echo "All checks passed!"
 
 # 安全检查
 security-check:
@@ -177,7 +178,6 @@ dev-setup:
 	@echo "Setting up development environment..."
 	@echo "Installing development tools..."
 	@go install github.com/google/wire/cmd/wire@latest
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	@go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
 	@echo "Development environment setup complete!"
 
@@ -213,9 +213,8 @@ help:
 	@echo "  deps           - Install dependencies"
 	@echo "  fmt            - Format code"
 	@echo "  vet            - Run go vet"
-	@echo "  lint           - Run golangci-lint"
 	@echo "  security-check - Run security checks"
-	@echo "  check          - Run all checks (fmt, vet, lint, test)"
+	@echo "  check          - Run all checks (fmt, vet, test)"
 	@echo "  mod-tidy       - Tidy module dependencies"
 	@echo "  wire-gen       - Generate Wire dependency injection code"
 	@echo ""
