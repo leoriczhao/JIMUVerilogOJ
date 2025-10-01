@@ -241,8 +241,14 @@ func (h *ProblemHandler) UpdateProblem(c *gin.Context) {
 		return
 	}
 
-	// 检查权限（只有作者或管理员可以更新）
-	if problem.AuthorID != userID.(uint) {
+	// 检查权限：作者或管理员可以更新
+	// 注意：由于创建题目需要教师/管理员权限，所以作者必然是教师或管理员
+	// 这里的作者检查用于实现"教师只能管理自己的题目，管理员可以管理所有题目"
+	role, _ := c.Get("role")
+	isAuthor := problem.AuthorID == userID.(uint)
+	isAdmin := role == "admin" || role == "super_admin"
+
+	if !isAuthor && !isAdmin {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   "permission_denied",
 			"message": "没有权限更新此题目",
@@ -332,8 +338,12 @@ func (h *ProblemHandler) DeleteProblem(c *gin.Context) {
 		return
 	}
 
-	// 检查权限（只有作者或管理员可以删除）
-	if problem.AuthorID != userID.(uint) {
+	// 检查权限：作者或管理员可以删除
+	role, _ := c.Get("role")
+	isAuthor := problem.AuthorID == userID.(uint)
+	isAdmin := role == "admin" || role == "super_admin"
+
+	if !isAuthor && !isAdmin {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   "permission_denied",
 			"message": "没有权限删除此题目",
@@ -368,6 +378,26 @@ func (h *ProblemHandler) GetTestCases(c *gin.Context) {
 		return
 	}
 
+	// 获取题目检查权限
+	problem, err := h.problemService.GetProblem(uint(id))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "problem_not_found",
+			"message": "题目不存在",
+		})
+		return
+	}
+
+	// 权限检查: 作者或管理员可以查看所有测试用例
+	userIDValue, _ := c.Get("user_id")
+	roleValue, _ := c.Get("role")
+
+	userID, hasUserID := userIDValue.(uint)
+	role, _ := roleValue.(string)
+
+	isAuthor := hasUserID && problem.AuthorID == userID
+	isAdmin := role == "admin" || role == "super_admin"
+
 	// 获取测试用例
 	testCases, err := h.problemService.GetTestCases(uint(id))
 	if err != nil {
@@ -381,6 +411,10 @@ func (h *ProblemHandler) GetTestCases(c *gin.Context) {
 	// 转换为DTO响应
 	var testCaseResponses []dto.TestCaseResponse
 	for _, tc := range testCases {
+		// 只有作者和管理员可以看到所有测试用例，其他用户只能看样例
+		if !isAuthor && !isAdmin && !tc.IsSample {
+			continue
+		}
 		testCaseResponses = append(testCaseResponses, dto.TestCaseDomainToResponse(&tc))
 	}
 
@@ -431,8 +465,12 @@ func (h *ProblemHandler) AddTestCase(c *gin.Context) {
 		return
 	}
 
-	// 检查权限（只有作者或管理员可以添加测试用例）
-	if problem.AuthorID != userID.(uint) {
+	// 检查权限：作者或管理员可以添加测试用例
+	role, _ := c.Get("role")
+	isAuthor := problem.AuthorID == userID.(uint)
+	isAdmin := role == "admin" || role == "super_admin"
+
+	if !isAuthor && !isAdmin {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error":   "permission_denied",
 			"message": "没有权限为此题目添加测试用例",

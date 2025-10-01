@@ -108,6 +108,7 @@ paths:
       tags:
         - 提交管理
       summary: 删除提交
+      description: 仅管理员可删除提交记录
       security:
         - BearerAuth: []
       parameters:
@@ -123,6 +124,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SubmissionDeleteResponse'
+        '403':
+          description: 需要管理员权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /submissions/user:
     get:
