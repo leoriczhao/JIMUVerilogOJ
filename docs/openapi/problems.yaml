@@ -112,7 +112,7 @@ paths:
       tags:
         - 题目管理
       summary: 更新题目
-      description: 需要题目作者、教师或管理员权限
+      description: 需要题目作者或管理员权限（教师只能修改自己创建的题目）
       security:
         - BearerAuth: []
       parameters:
@@ -141,7 +141,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: 无权限 - 需要题目作者、教师或管理员权限
+          description: 无权限 - 需要题目作者或管理员权限
           content:
             application/json:
               schema:
@@ -151,7 +151,7 @@ paths:
       tags:
         - 题目管理
       summary: 删除题目
-      description: 需要题目作者、教师或管理员权限
+      description: 需要题目作者或管理员权限（教师只能修改自己创建的题目）
       security:
         - BearerAuth: []
       parameters:
@@ -168,7 +168,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProblemDeleteResponse'
         '403':
-          description: 无权限 - 需要题目作者、教师或管理员权限
+          description: 无权限 - 需要题目作者或管理员权限
           content:
             application/json:
               schema:
@@ -198,7 +198,7 @@ paths:
       tags:
         - 题目管理
       summary: 添加测试用例
-      description: 需要题目作者、教师或管理员权限
+      description: 需要题目作者或管理员权限（教师只能修改自己创建的题目）
       security:
         - BearerAuth: []
       parameters:
@@ -221,7 +221,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TestCaseAddResponse'
         '403':
-          description: 无权限 - 需要题目作者、教师或管理员权限
+          description: 无权限 - 需要题目作者或管理员权限
           content:
             application/json:
               schema:
