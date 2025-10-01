@@ -87,13 +87,16 @@ func main() {
 		{
 			problems.GET("", app.Handlers.ProblemHandler.ListProblems)
 			problems.GET("/:id", app.Handlers.ProblemHandler.GetProblem)
+			// 创建题目只允许教师和管理员
 			problems.POST("", middleware.AuthRequired(), middleware.TeacherOrAdmin(), app.Handlers.ProblemHandler.CreateProblem)
-			problems.PUT("/:id", middleware.AuthRequired(), middleware.TeacherOrAdmin(), app.Handlers.ProblemHandler.UpdateProblem)
-			problems.DELETE("/:id", middleware.AuthRequired(), middleware.TeacherOrAdmin(), app.Handlers.ProblemHandler.DeleteProblem)
+			// 更新和删除题目：允许作者、教师、管理员（权限检查在handler内）
+			problems.PUT("/:id", middleware.AuthRequired(), app.Handlers.ProblemHandler.UpdateProblem)
+			problems.DELETE("/:id", middleware.AuthRequired(), app.Handlers.ProblemHandler.DeleteProblem)
 
 			// 测试用例相关路由
 			problems.GET("/:id/testcases", app.Handlers.ProblemHandler.GetTestCases)
-			problems.POST("/:id/testcases", middleware.AuthRequired(), middleware.TeacherOrAdmin(), app.Handlers.ProblemHandler.AddTestCase)
+			// 添加测试用例：允许作者、教师、管理员（权限检查在handler内）
+			problems.POST("/:id/testcases", middleware.AuthRequired(), app.Handlers.ProblemHandler.AddTestCase)
 
 			// 题目提交记录路由
 			problems.GET("/:id/submissions", app.Handlers.SubmissionHandler.GetProblemSubmissions)
