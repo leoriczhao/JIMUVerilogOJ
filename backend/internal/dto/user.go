@@ -10,7 +10,7 @@ type UserRegisterRequest struct {
 	Nickname  string `json:"nickname"`
 	School    string `json:"school"`
 	StudentID string `json:"student_id"`
-	Role      string `json:"role"`
+	// Role字段已移除 - 注册用户默认为student角色,由管理员后续分配权限
 }
 
 // UserLoginRequest 用户登录请求
@@ -25,6 +25,12 @@ type UserUpdateProfileRequest struct {
 	Avatar    string `json:"avatar"`
 	School    string `json:"school"`
 	StudentID string `json:"student_id"`
+}
+
+// UserChangePasswordRequest 修改密码请求
+type UserChangePasswordRequest struct {
+	OldPassword string `json:"old_password" binding:"required,min=6"`
+	NewPassword string `json:"new_password" binding:"required,min=6"`
 }
 
 // UserResponse 用户响应

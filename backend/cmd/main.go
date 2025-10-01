@@ -79,6 +79,7 @@ func main() {
 			users.POST("/login", app.Handlers.UserHandler.Login)
 			users.GET("/profile", middleware.AuthRequired(), app.Handlers.UserHandler.GetProfile)
 			users.PUT("/profile", middleware.AuthRequired(), app.Handlers.UserHandler.UpdateProfile)
+			users.PUT("/password", middleware.AuthRequired(), app.Handlers.UserHandler.ChangePassword)
 		}
 
 		// 题目相关路由
@@ -86,13 +87,13 @@ func main() {
 		{
 			problems.GET("", app.Handlers.ProblemHandler.ListProblems)
 			problems.GET("/:id", app.Handlers.ProblemHandler.GetProblem)
-			problems.POST("", middleware.AuthRequired(), middleware.AdminOnly(), app.Handlers.ProblemHandler.CreateProblem)
-			problems.PUT("/:id", middleware.AuthRequired(), middleware.AdminOnly(), app.Handlers.ProblemHandler.UpdateProblem)
-			problems.DELETE("/:id", middleware.AuthRequired(), middleware.AdminOnly(), app.Handlers.ProblemHandler.DeleteProblem)
+			problems.POST("", middleware.AuthRequired(), middleware.TeacherOrAdmin(), app.Handlers.ProblemHandler.CreateProblem)
+			problems.PUT("/:id", middleware.AuthRequired(), middleware.TeacherOrAdmin(), app.Handlers.ProblemHandler.UpdateProblem)
+			problems.DELETE("/:id", middleware.AuthRequired(), middleware.TeacherOrAdmin(), app.Handlers.ProblemHandler.DeleteProblem)
 
 			// 测试用例相关路由
 			problems.GET("/:id/testcases", app.Handlers.ProblemHandler.GetTestCases)
-			problems.POST("/:id/testcases", middleware.AuthRequired(), middleware.AdminOnly(), app.Handlers.ProblemHandler.AddTestCase)
+			problems.POST("/:id/testcases", middleware.AuthRequired(), middleware.TeacherOrAdmin(), app.Handlers.ProblemHandler.AddTestCase)
 
 			// 题目提交记录路由
 			problems.GET("/:id/submissions", app.Handlers.SubmissionHandler.GetProblemSubmissions)
@@ -117,12 +118,12 @@ func main() {
 		{
 			forum.GET("/posts", app.Handlers.ForumHandler.ListPosts)
 			forum.GET("/posts/:id", app.Handlers.ForumHandler.GetPost)
-			forum.POST("/posts", middleware.AuthRequired(), middleware.AdminOnly(), app.Handlers.ForumHandler.CreatePost)
-			forum.PUT("/posts/:id", middleware.AuthRequired(), middleware.AdminOnly(), app.Handlers.ForumHandler.UpdatePost)
-			forum.DELETE("/posts/:id", middleware.AuthRequired(), middleware.AdminOnly(), app.Handlers.ForumHandler.DeletePost)
+			forum.POST("/posts", middleware.AuthRequired(), app.Handlers.ForumHandler.CreatePost)
+			forum.PUT("/posts/:id", middleware.AuthRequired(), app.Handlers.ForumHandler.UpdatePost)
+			forum.DELETE("/posts/:id", middleware.AuthRequired(), app.Handlers.ForumHandler.DeletePost)
 
 			forum.GET("/posts/:id/replies", app.Handlers.ForumHandler.ListReplies)
-			forum.POST("/posts/:id/replies", middleware.AuthRequired(), middleware.AdminOnly(), app.Handlers.ForumHandler.CreateReply)
+			forum.POST("/posts/:id/replies", middleware.AuthRequired(), app.Handlers.ForumHandler.CreateReply)
 		}
 
 		// 新闻相关路由

@@ -49,6 +49,7 @@ paths:
       tags:
         - 新闻管理
       summary: 创建新闻
+      description: 需要管理员权限
       security:
         - BearerAuth: []
       requestBody:
@@ -66,6 +67,12 @@ paths:
                 $ref: '#/components/schemas/NewsCreateResponse'
         '400':
           description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 需要管理员权限
           content:
             application/json:
               schema:

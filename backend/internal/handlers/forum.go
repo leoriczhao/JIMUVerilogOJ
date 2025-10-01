@@ -146,7 +146,8 @@ func (h *ForumHandler) UpdatePost(c *gin.Context) {
 	if req.Category != "" {
 		post.Category = req.Category
 	}
-	if req.IsLocked != nil {
+	// 只有管理员可以修改锁定状态
+	if req.IsLocked != nil && (userRole == "admin" || userRole == "super_admin") {
 		post.IsLocked = *req.IsLocked
 	}
 	if len(req.Tags) > 0 {
