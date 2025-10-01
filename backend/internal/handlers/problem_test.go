@@ -494,11 +494,11 @@ func TestProblemHandler_GetTestCases(t *testing.T) {
 		mockService.AssertExpectations(t)
 	})
 
-	t.Run("Teacher Sees All Test Cases", func(t *testing.T) {
+	t.Run("Non-Author Teacher Only Sees Sample Test Cases", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Params = []gin.Param{{Key: "id", Value: "1"}}
-		// Set teacher context
+		// Set teacher context (but not the author)
 		c.Set("user_id", uint(2))
 		c.Set("role", "teacher")
 
@@ -523,8 +523,9 @@ func TestProblemHandler_GetTestCases(t *testing.T) {
 		var response dto.TestCaseListResponse
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		// Teacher should see all test cases
-		assert.Equal(t, 2, len(response.TestCases))
+		// Non-author teacher should only see sample test cases (like regular users)
+		assert.Equal(t, 1, len(response.TestCases))
+		assert.True(t, response.TestCases[0].IsSample)
 		mockService.AssertExpectations(t)
 	})
 }
