@@ -54,6 +54,7 @@ paths:
       tags:
         - 题目管理
       summary: 创建题目
+      description: 需要教师或管理员权限
       security:
         - BearerAuth: []
       requestBody:
@@ -71,6 +72,12 @@ paths:
                 $ref: '#/components/schemas/ProblemCreateResponse'
         '400':
           description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 需要教师或管理员权限
           content:
             application/json:
               schema:
@@ -105,6 +112,7 @@ paths:
       tags:
         - 题目管理
       summary: 更新题目
+      description: 需要题目作者或管理员权限（教师只能修改自己创建的题目）
       security:
         - BearerAuth: []
       parameters:
@@ -132,11 +140,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '403':
+          description: 无权限 - 需要题目作者或管理员权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
     delete:
       tags:
         - 题目管理
       summary: 删除题目
+      description: 需要题目作者或管理员权限（教师只能修改自己创建的题目）
       security:
         - BearerAuth: []
       parameters:
@@ -152,12 +167,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDeleteResponse'
+        '403':
+          description: 无权限 - 需要题目作者或管理员权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /problems/{id}/testcases:
     get:
       tags:
         - 题目管理
       summary: 获取题目测试用例
+      description: 普通用户只能查看样例测试用例，题目作者、教师和管理员可查看所有测试用例
       parameters:
         - name: id
           in: path
@@ -176,6 +198,7 @@ paths:
       tags:
         - 题目管理
       summary: 添加测试用例
+      description: 需要题目作者或管理员权限（教师只能修改自己创建的题目）
       security:
         - BearerAuth: []
       parameters:
@@ -197,6 +220,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TestCaseAddResponse'
+        '403':
+          description: 无权限 - 需要题目作者或管理员权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /problems/{id}/submissions:
     get:
