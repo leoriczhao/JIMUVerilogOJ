@@ -165,10 +165,30 @@ if !isAuthor && !isPrivileged {
 - 中间件应保持轻量和通用
 - 作者检查逻辑与业务逻辑紧密相关，适合放在Handler中
 
-#### 3. **无中间件**（公开或Handler完全控制）
-适用于需要复杂逻辑判断的场景：
-- **查看测试用例**: 根据角色和作者身份过滤返回数据
-- **列表查询**: 根据角色过滤可见内容
+#### 3. **可选认证中间件**（支持匿名和认证用户）
+适用于需要根据认证状态提供不同内容的场景：
+- **查看测试用例**: 使用`OptionalAuth()`中间件
+  - 匿名用户：只能查看样例测试用例
+  - 认证用户：根据角色和作者身份查看对应测试用例
+
+```go
+// 路由：使用OptionalAuth尝试解析token但不强制要求
+problems.GET("/:id/testcases", middleware.OptionalAuth(), handler)
+
+// Handler内：根据是否有user_id判断是否认证
+userID, _ := c.Get("user_id")  // nil if anonymous
+role, _ := c.Get("role")       // "" if anonymous
+if userID != nil {
+    // 认证用户逻辑
+} else {
+    // 匿名用户逻辑
+}
+```
+
+#### 4. **无中间件**（完全公开）
+适用于完全公开的场景：
+- **列表查询**: 根据请求参数过滤可见内容
+- **公开信息查看**: 无需任何认证
 
 ---
 

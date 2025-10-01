@@ -94,7 +94,8 @@ func main() {
 			problems.DELETE("/:id", middleware.AuthRequired(), app.Handlers.ProblemHandler.DeleteProblem)
 
 			// 测试用例相关路由
-			problems.GET("/:id/testcases", app.Handlers.ProblemHandler.GetTestCases)
+			// 查看测试用例：支持可选认证（匿名用户看样例，认证用户根据权限看全部或样例）
+			problems.GET("/:id/testcases", middleware.OptionalAuth(), app.Handlers.ProblemHandler.GetTestCases)
 			// 添加测试用例：允许作者、教师、管理员（权限检查在handler内）
 			problems.POST("/:id/testcases", middleware.AuthRequired(), app.Handlers.ProblemHandler.AddTestCase)
 
