@@ -9,6 +9,19 @@ import (
 	"gorm.io/gorm"
 )
 
+func parseModelTags(raw string) []string {
+	if raw == "" || raw == "[]" {
+		return nil
+	}
+
+	var tags []string
+	if err := json.Unmarshal([]byte(raw), &tags); err != nil {
+		return nil
+	}
+
+	return tags
+}
+
 // ========== Domain ↔ Model 转换函数 ==========
 
 // UserDomainToModel 将Domain实体转换为Model
@@ -87,12 +100,6 @@ func ProblemDomainToModel(problem *domain.Problem) *models.Problem {
 
 // ProblemModelToDomain 将Model转换为Domain实体
 func ProblemModelToDomain(problem *models.Problem) *domain.Problem {
-	// 将JSON字符串转换为Tags切片
-	var tags []string
-	if problem.Tags != "" && problem.Tags != "[]" {
-		json.Unmarshal([]byte(problem.Tags), &tags)
-	}
-
 	return &domain.Problem{
 		ID:            problem.ID,
 		Title:         problem.Title,
@@ -101,7 +108,7 @@ func ProblemModelToDomain(problem *models.Problem) *domain.Problem {
 		OutputDesc:    problem.OutputDesc,
 		Difficulty:    problem.Difficulty,
 		Category:      problem.Category,
-		Tags:          tags,
+		Tags:          parseModelTags(problem.Tags),
 		TimeLimit:     problem.TimeLimit,
 		MemoryLimit:   problem.MemoryLimit,
 		SubmitCount:   problem.SubmitCount,
@@ -179,19 +186,13 @@ func ForumPostDomainToModel(post *domain.ForumPost) *models.ForumPost {
 
 // ForumPostModelToDomain 将Model转换为Domain实体
 func ForumPostModelToDomain(post *models.ForumPost) *domain.ForumPost {
-	// 将JSON字符串转换为Tags切片
-	var tags []string
-	if post.Tags != "" && post.Tags != "[]" {
-		json.Unmarshal([]byte(post.Tags), &tags)
-	}
-
 	return &domain.ForumPost{
 		ID:         post.ID,
 		Title:      post.Title,
 		Content:    post.Content,
 		AuthorID:   post.UserID,
 		Category:   post.Category,
-		Tags:       tags,
+		Tags:       parseModelTags(post.Tags),
 		ViewCount:  post.ViewCount,
 		ReplyCount: post.ReplyCount,
 		LikeCount:  post.LikeCount,
@@ -262,12 +263,6 @@ func NewsDomainToModel(news *domain.News) *models.News {
 
 // NewsModelToDomain 将Model转换为Domain实体
 func NewsModelToDomain(news *models.News) *domain.News {
-	// 将JSON字符串转换为Tags切片
-	var tags []string
-	if news.Tags != "" && news.Tags != "[]" {
-		json.Unmarshal([]byte(news.Tags), &tags)
-	}
-
 	// 根据IsPublished设置状态
 	status := "draft"
 	if news.IsPublished {
@@ -288,7 +283,7 @@ func NewsModelToDomain(news *models.News) *domain.News {
 		AuthorID:    news.AuthorID,
 		Status:      status,
 		Category:    news.Category,
-		Tags:        tags,
+		Tags:        parseModelTags(news.Tags),
 		IsFeatured:  news.IsFeatured,
 		ViewCount:   news.ViewCount,
 		CreatedAt:   news.CreatedAt,

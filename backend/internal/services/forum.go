@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"log"
 	"verilog-oj/backend/internal/domain"
 )
 
@@ -83,7 +84,7 @@ func (s *ForumService) GetPost(id uint) (*domain.ForumPost, error) {
 
 	// 更新浏览量
 	if err := s.forumRepo.IncrementPostViewCount(id); err != nil {
-		// 记录错误但不影响获取帖子
+		log.Printf("failed to increment post view count: %v", err)
 	}
 
 	return post, nil
@@ -181,7 +182,7 @@ func (s *ForumService) CreateReply(reply *domain.ForumReply) error {
 
 	// 增加帖子回复数
 	if err := s.forumRepo.IncrementPostReplyCount(reply.PostID); err != nil {
-		// 记录错误但不影响回复创建
+		log.Printf("failed to increment post reply count: %v", err)
 	}
 
 	return nil
