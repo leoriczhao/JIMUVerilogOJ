@@ -1,0 +1,112 @@
+components:
+  schemas:
+    News:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        summary:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        is_published:
+          type: boolean
+        author_id:
+          type: integer
+        view_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    NewsListResponse:
+      type: object
+      properties:
+        news:
+          type: array
+          items:
+            $ref: '#/components/schemas/News'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    CreateNewsRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        summary:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        is_published:
+          type: boolean
+
+    NewsCreateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        news:
+          $ref: '#/components/schemas/News'
+
+    UpdateNewsRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        summary:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        is_published:
+          type: boolean
+
+    NewsUpdateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        news:
+          $ref: '#/components/schemas/News'
+
+    NewsDeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    NewsDetailsResponse:
+      type: object
+      properties:
+        news:
+          $ref: '#/components/schemas/News'

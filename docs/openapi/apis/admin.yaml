@@ -1,0 +1,692 @@
+paths:
+  # 管理员身份验证
+  /admin/whoami:
+    get:
+      tags:
+        - 管理员身份
+      summary: 当前管理员信息
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '../models/admin.yaml#/components/schemas/AdminInfo'
+        '401':
+          description: 未认证
+          content:
+            application/json:
+              schema:
+                $ref: '../models/common.yaml#/components/schemas/Error'
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: '../models/common.yaml#/components/schemas/Error'
+
+  # 用户管理
+  /admin/users:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取用户列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [student, teacher, admin, super_admin]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive]
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/admin.yaml#/components/schemas/AdminUserList'
+
+    post:
+      tags:
+        - 用户管理
+      summary: 创建用户
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../models/admin.yaml#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/user.yaml#/components/schemas/User'
+
+  /admin/users/{id}:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取用户详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/admin.yaml#/components/schemas/AdminUserDetail'
+
+    put:
+      tags:
+        - 用户管理
+      summary: 更新用户信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../models/admin.yaml#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: 更新成功
+
+    delete:
+      tags:
+        - 用户管理
+      summary: 删除用户
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+
+  /admin/users/{id}/ban:
+    post:
+      tags:
+        - 用户管理
+      summary: 封禁用户
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../models/admin.yaml#/components/schemas/BanUserRequest'
+      responses:
+        '200':
+          description: 封禁成功
+
+  /admin/users/{id}/unban:
+    post:
+      tags:
+        - 用户管理
+      summary: 解封用户
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 解封成功
+
+  # 提交管理
+  /admin/submissions:
+    get:
+      tags:
+        - 提交管理
+      summary: 获取提交记录列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+        - name: problem_id
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/admin.yaml#/components/schemas/AdminSubmissionList'
+
+  /admin/submissions/{id}:
+    get:
+      tags:
+        - 提交管理
+      summary: 获取提交详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/admin.yaml#/components/schemas/AdminSubmissionDetail'
+
+    delete:
+      tags:
+        - 提交管理
+      summary: 删除提交记录
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+
+  /admin/submissions/{id}/rejudge:
+    post:
+      tags:
+        - 提交管理
+      summary: 重新判题
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 重新判题已启动
+
+  # 题目管理
+  /admin/problems:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [Easy, Medium, Hard]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [public, private, draft]
+        - name: author_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/admin.yaml#/components/schemas/AdminProblemList'
+
+    post:
+      tags:
+        - 题目管理
+      summary: 创建题目
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../models/admin.yaml#/components/schemas/AdminCreateProblemRequest'
+      responses:
+        '201':
+          description: 创建成功
+
+  /admin/problems/{id}:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/admin.yaml#/components/schemas/AdminProblemDetail'
+
+    put:
+      tags:
+        - 题目管理
+      summary: 更新题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../models/admin.yaml#/components/schemas/AdminUpdateProblemRequest'
+      responses:
+        '200':
+          description: 更新成功
+
+    delete:
+      tags:
+        - 题目管理
+      summary: 删除题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+
+  /admin/problems/{id}/publish:
+    post:
+      tags:
+        - 题目管理
+      summary: 发布题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 发布成功
+
+  /admin/problems/{id}/unpublish:
+    post:
+      tags:
+        - 题目管理
+      summary: 取消发布题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 取消发布成功
+
+  # 新闻管理
+  /admin/news:
+    get:
+      tags:
+        - 新闻管理
+      summary: 获取新闻列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [published, draft, archived]
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/admin.yaml#/components/schemas/AdminNewsList'
+
+    post:
+      tags:
+        - 新闻管理
+      summary: 创建新闻
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../models/admin.yaml#/components/schemas/AdminCreateNewsRequest'
+      responses:
+        '201':
+          description: 创建成功
+
+  /admin/news/{id}:
+    get:
+      tags:
+        - 新闻管理
+      summary: 获取新闻详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/admin.yaml#/components/schemas/AdminNewsDetail'
+
+    put:
+      tags:
+        - 新闻管理
+      summary: 更新新闻
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../models/admin.yaml#/components/schemas/AdminUpdateNewsRequest'
+      responses:
+        '200':
+          description: 更新成功
+
+    delete:
+      tags:
+        - 新闻管理
+      summary: 删除新闻
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  # 论坛管理
+  /admin/forum/posts:
+    get:
+      tags:
+        - 论坛管理
+      summary: 获取帖子列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [normal, hidden, locked]
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/admin.yaml#/components/schemas/AdminForumPostList'
+
+  /admin/forum/posts/{id}:
+    get:
+      tags:
+        - 论坛管理
+      summary: 获取帖子详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/admin.yaml#/components/schemas/AdminForumPostDetail'
+
+    delete:
+      tags:
+        - 论坛管理
+      summary: 删除帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /admin/forum/posts/{id}/lock:
+    post:
+      tags:
+        - 论坛管理
+      summary: 锁定帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 锁定成功
+
+  /admin/forum/posts/{id}/unlock:
+    post:
+      tags:
+        - 论坛管理
+      summary: 解锁帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 解锁成功
+
+  /admin/forum/posts/{id}/sticky:
+    post:
+      tags:
+        - 论坛管理
+      summary: 置顶帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 置顶成功
+
+  /admin/forum/posts/{id}/unsticky:
+    post:
+      tags:
+        - 论坛管理
+      summary: 取消置顶帖子
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 取消置顶成功
