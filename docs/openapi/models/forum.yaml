@@ -121,8 +121,8 @@ components:
           type: string
         post_id:
           type: integer
-        user_id:
-          type: integer
+        user:
+          $ref: '../models/user.yaml#/components/schemas/User'
         parent_id:
           type: integer
           nullable: true
