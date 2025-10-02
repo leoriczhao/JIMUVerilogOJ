@@ -47,7 +47,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/forum.yaml#/components/schemas/ForumPostListResponse'
+                $ref: './models/forum.yaml#/components/schemas/ForumPostListResponse'
 
     post:
       tags:
@@ -61,26 +61,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/forum.yaml#/components/schemas/CreateForumPostRequest'
+              $ref: './models/forum.yaml#/components/schemas/CreateForumPostRequest'
       responses:
         '201':
           description: 创建成功
           content:
             application/json:
               schema:
-                $ref: '../models/forum.yaml#/components/schemas/ForumPostCreateResponse'
+                $ref: './models/forum.yaml#/components/schemas/ForumPostCreateResponse'
         '400':
           description: 请求参数错误
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
         '401':
           description: 需要认证
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /forum/posts/{id}:
     get:
@@ -99,13 +99,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/forum.yaml#/components/schemas/ForumPostDetailsResponse'
+                $ref: './models/forum.yaml#/components/schemas/ForumPostDetailsResponse'
         '404':
           description: 帖子不存在
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     put:
       tags:
@@ -125,20 +125,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/forum.yaml#/components/schemas/UpdateForumPostRequest'
+              $ref: './models/forum.yaml#/components/schemas/UpdateForumPostRequest'
       responses:
         '200':
           description: 更新成功
           content:
             application/json:
               schema:
-                $ref: '../models/forum.yaml#/components/schemas/ForumPostUpdateResponse'
+                $ref: './models/forum.yaml#/components/schemas/ForumPostUpdateResponse'
         '403':
           description: 无权限 - 需要帖子作者或管理员权限
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     delete:
       tags:
@@ -159,13 +159,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/forum.yaml#/components/schemas/ForumPostDeleteResponse'
+                $ref: './models/forum.yaml#/components/schemas/ForumPostDeleteResponse'
         '403':
           description: 无权限 - 需要帖子作者或管理员权限
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /forum/posts/{id}/replies:
     get:
@@ -194,7 +194,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/forum.yaml#/components/schemas/ForumReplyListResponse'
+                $ref: './models/forum.yaml#/components/schemas/ForumReplyListResponse'
 
     post:
       tags:
@@ -214,17 +214,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/forum.yaml#/components/schemas/CreateForumReplyRequest'
+              $ref: './models/forum.yaml#/components/schemas/CreateForumReplyRequest'
       responses:
         '201':
           description: 创建成功
           content:
             application/json:
               schema:
-                $ref: '../models/forum.yaml#/components/schemas/ForumReplyCreateResponse'
+                $ref: './models/forum.yaml#/components/schemas/ForumReplyCreateResponse'
         '401':
           description: 需要认证
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
