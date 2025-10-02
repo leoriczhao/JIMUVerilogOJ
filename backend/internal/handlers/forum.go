@@ -51,7 +51,10 @@ func (h *ForumHandler) ListPosts(c *gin.Context) {
 
 	posts, total, err := h.forumService.ListPosts(page, limit, filters)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list posts"})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "internal_error",
+			"message": "获取帖子列表失败：" + err.Error(),
+		})
 		return
 	}
 
@@ -73,22 +76,33 @@ func (h *ForumHandler) ListPosts(c *gin.Context) {
 func (h *ForumHandler) GetPost(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_id",
+			"message": "无效的帖子ID",
+		})
 		return
 	}
 	post, err := h.forumService.GetPost(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "post_not_found",
+			"message": "帖子不存在",
+		})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"post": dto.ForumPostDomainToResponse(post)})
+	c.JSON(http.StatusOK, dto.ForumPostDetailsResponse{
+		Post: dto.ForumPostDomainToResponse(post),
+	})
 }
 
 // CreatePost 创建帖子
 func (h *ForumHandler) CreatePost(c *gin.Context) {
 	var req dto.ForumPostCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_request",
+			"message": "请求参数错误：" + err.Error(),
+		})
 		return
 	}
 	userID, _ := c.Get("user_id")
@@ -102,7 +116,10 @@ func (h *ForumHandler) CreatePost(c *gin.Context) {
 	}
 
 	if err := h.forumService.CreatePost(post); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create post"})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "creation_failed",
+			"message": "创建帖子失败：" + err.Error(),
+		})
 		return
 	}
 	c.JSON(http.StatusCreated, dto.ForumPostCreateResponse{
@@ -115,7 +132,10 @@ func (h *ForumHandler) CreatePost(c *gin.Context) {
 func (h *ForumHandler) UpdatePost(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_id",
+			"message": "无效的帖子ID",
+		})
 		return
 	}
 	var req dto.ForumPostUpdateRequest
@@ -128,12 +148,18 @@ func (h *ForumHandler) UpdatePost(c *gin.Context) {
 
 	post, err := h.forumService.GetPost(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "post_not_found",
+			"message": "帖子不存在",
+		})
 		return
 	}
 
 	if post.AuthorID != userID.(uint) && userRole != "admin" {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Permission denied"})
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   "permission_denied",
+			"message": "没有权限执行此操作",
+		})
 		return
 	}
 
@@ -155,7 +181,10 @@ func (h *ForumHandler) UpdatePost(c *gin.Context) {
 	}
 
 	if err := h.forumService.UpdatePost(post); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update post"})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "update_failed",
+			"message": "更新帖子失败：" + err.Error(),
+		})
 		return
 	}
 	c.JSON(http.StatusOK, dto.ForumPostUpdateResponse{
@@ -168,7 +197,10 @@ func (h *ForumHandler) UpdatePost(c *gin.Context) {
 func (h *ForumHandler) DeletePost(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_id",
+			"message": "无效的帖子ID",
+		})
 		return
 	}
 	userID, _ := c.Get("user_id")
@@ -176,17 +208,26 @@ func (h *ForumHandler) DeletePost(c *gin.Context) {
 
 	post, err := h.forumService.GetPost(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "post_not_found",
+			"message": "帖子不存在",
+		})
 		return
 	}
 
 	if post.AuthorID != userID.(uint) && userRole != "admin" {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Permission denied"})
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   "permission_denied",
+			"message": "没有权限执行此操作",
+		})
 		return
 	}
 
 	if err := h.forumService.DeletePost(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete post"})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "delete_failed",
+			"message": "删除帖子失败：" + err.Error(),
+		})
 		return
 	}
 	c.JSON(http.StatusOK, dto.ForumPostDeleteResponse{
@@ -198,7 +239,10 @@ func (h *ForumHandler) DeletePost(c *gin.Context) {
 func (h *ForumHandler) ListReplies(c *gin.Context) {
 	postID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_id",
+			"message": "无效的帖子ID",
+		})
 		return
 	}
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -206,7 +250,10 @@ func (h *ForumHandler) ListReplies(c *gin.Context) {
 
 	replies, total, err := h.forumService.ListReplies(uint(postID), page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list replies"})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "internal_error",
+			"message": "获取回复列表失败：" + err.Error(),
+		})
 		return
 	}
 	// 转换为DTO响应
@@ -227,7 +274,10 @@ func (h *ForumHandler) ListReplies(c *gin.Context) {
 func (h *ForumHandler) CreateReply(c *gin.Context) {
 	postID, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid post ID"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "invalid_id",
+			"message": "无效的帖子ID",
+		})
 		return
 	}
 	var req dto.ForumReplyCreateRequest
@@ -240,11 +290,17 @@ func (h *ForumHandler) CreateReply(c *gin.Context) {
 	// 检查帖子是否存在且未锁定
 	post, err := h.forumService.GetPost(uint(postID))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Post not found"})
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "post_not_found",
+			"message": "帖子不存在",
+		})
 		return
 	}
 	if post.IsLocked {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Post is locked"})
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   "post_locked",
+			"message": "帖子已被锁定，无法回复",
+		})
 		return
 	}
 
@@ -256,7 +312,10 @@ func (h *ForumHandler) CreateReply(c *gin.Context) {
 	}
 
 	if err := h.forumService.CreateReply(reply); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create reply"})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "creation_failed",
+			"message": "创建回复失败：" + err.Error(),
+		})
 		return
 	}
 	c.JSON(http.StatusCreated, dto.ForumReplyCreateResponse{

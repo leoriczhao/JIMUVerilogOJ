@@ -37,6 +37,7 @@ func NewUserHandler(userService UserService) *UserHandler {
 // LoginRequest = dto.UserLoginRequest
 // LoginResponse = dto.UserLoginResponse
 // UpdateProfileRequest = dto.UserUpdateProfileRequest
+// UpdateProfileResponse = dto.UpdateProfileResponse
 
 // 从配置读取JWT密钥
 var jwtSecret = []byte(config.LoadConfig().JWT.Secret)
@@ -220,7 +221,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.UserUpdateResponse{
+	c.JSON(http.StatusOK, dto.UpdateProfileResponse{
 		Message: "更新成功",
 		User:    dto.UserToResponse(user),
 	})
