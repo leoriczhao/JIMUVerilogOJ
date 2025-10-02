@@ -65,8 +65,8 @@ type UserProfileResponse struct {
 	User UserResponse `json:"user"`
 }
 
-// UserUpdateResponse 用户更新响应
-type UserUpdateResponse struct {
+// UpdateProfileResponse 更新个人信息响应
+type UpdateProfileResponse struct {
 	Message string       `json:"message"`
 	User    UserResponse `json:"user"`
 }
