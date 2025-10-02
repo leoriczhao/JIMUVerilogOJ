@@ -1,0 +1,137 @@
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        nickname:
+          type: string
+        avatar:
+          type: string
+        school:
+          type: string
+        student_id:
+          type: string
+        role:
+          type: string
+          enum: [student, teacher, admin, super_admin]
+        solved:
+          type: integer
+        submitted:
+          type: integer
+        rating:
+          type: integer
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        last_login_at:
+          type: string
+          format: date-time
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 20
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        nickname:
+          type: string
+          maxLength: 50
+        school:
+          type: string
+          maxLength: 100
+        student_id:
+          type: string
+          maxLength: 20
+
+    RegisterResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        expires_in:
+          type: integer
+
+    UserProfileResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+          maxLength: 50
+        avatar:
+          type: string
+        school:
+          type: string
+          maxLength: 100
+        student_id:
+          type: string
+          maxLength: 20
+
+    UpdateProfileResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - old_password
+        - new_password
+      properties:
+        old_password:
+          type: string
+          minLength: 6
+        new_password:
+          type: string
+          minLength: 6

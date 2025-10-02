@@ -1,0 +1,239 @@
+paths:
+  /problems:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目列表
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [Easy, Medium, Hard]
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/problem.yaml#/components/schemas/ProblemListResponse'
+
+    post:
+      tags:
+        - 题目管理
+      summary: 创建题目
+      description: 需要教师或管理员权限
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../models/problem.yaml#/components/schemas/ProblemCreateRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/problem.yaml#/components/schemas/ProblemCreateResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '../models/common.yaml#/components/schemas/Error'
+        '403':
+          description: 需要教师或管理员权限
+          content:
+            application/json:
+              schema:
+                $ref: '../models/common.yaml#/components/schemas/Error'
+
+  /problems/{id}:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/problem.yaml#/components/schemas/ProblemDetailsResponse'
+        '404':
+          description: 题目不存在
+          content:
+            application/json:
+              schema:
+                $ref: '../models/common.yaml#/components/schemas/Error'
+
+    put:
+      tags:
+        - 题目管理
+      summary: 更新题目
+      description: 需要题目作者或管理员权限（教师只能修改自己创建的题目）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../models/problem.yaml#/components/schemas/ProblemUpdateRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/problem.yaml#/components/schemas/ProblemUpdateResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '../models/common.yaml#/components/schemas/Error'
+        '403':
+          description: 无权限 - 需要题目作者或管理员权限
+          content:
+            application/json:
+              schema:
+                $ref: '../models/common.yaml#/components/schemas/Error'
+
+    delete:
+      tags:
+        - 题目管理
+      summary: 删除题目
+      description: 需要题目作者或管理员权限（教师只能修改自己创建的题目）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/problem.yaml#/components/schemas/ProblemDeleteResponse'
+        '403':
+          description: 无权限 - 需要题目作者或管理员权限
+          content:
+            application/json:
+              schema:
+                $ref: '../models/common.yaml#/components/schemas/Error'
+
+  /problems/{id}/testcases:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目测试用例
+      description: 普通用户只能查看样例测试用例，题目作者、教师和管理员可查看所有测试用例
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/problem.yaml#/components/schemas/TestCaseListResponse'
+
+    post:
+      tags:
+        - 题目管理
+      summary: 添加测试用例
+      description: 需要题目作者或管理员权限（教师只能修改自己创建的题目）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../models/problem.yaml#/components/schemas/TestCaseRequest'
+      responses:
+        '201':
+          description: 添加成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/problem.yaml#/components/schemas/TestCaseAddResponse'
+        '403':
+          description: 无权限 - 需要题目作者或管理员权限
+          content:
+            application/json:
+              schema:
+                $ref: '../models/common.yaml#/components/schemas/Error'
+
+  /problems/{id}/submissions:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目提交记录
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/submission.yaml#/components/schemas/SubmissionListResponse'

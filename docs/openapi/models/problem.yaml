@@ -1,0 +1,195 @@
+components:
+  schemas:
+    Problem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        input_desc:
+          type: string
+        output_desc:
+          type: string
+        difficulty:
+          type: string
+          enum: [Easy, Medium, Hard]
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        time_limit:
+          type: integer
+        memory_limit:
+          type: integer
+        is_public:
+          type: boolean
+        author_id:
+          type: integer
+        submit_count:
+          type: integer
+        accept_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProblemListResponse:
+      type: object
+      properties:
+        problems:
+          type: array
+          items:
+            $ref: '#/components/schemas/Problem'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    ProblemCreateRequest:
+      type: object
+      required:
+        - title
+        - description
+        - difficulty
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        input_desc:
+          type: string
+        output_desc:
+          type: string
+        difficulty:
+          type: string
+          enum: [Easy, Medium, Hard]
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        time_limit:
+          type: integer
+          default: 1000
+        memory_limit:
+          type: integer
+          default: 128
+        test_cases:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCaseRequest'
+
+    ProblemCreateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        problem:
+          $ref: '#/components/schemas/Problem'
+
+    ProblemUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        input_desc:
+          type: string
+        output_desc:
+          type: string
+        difficulty:
+          type: string
+          enum: [Easy, Medium, Hard]
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        time_limit:
+          type: integer
+        memory_limit:
+          type: integer
+        is_public:
+          type: boolean
+
+    ProblemUpdateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        problem:
+          $ref: '#/components/schemas/Problem'
+
+    ProblemDeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    ProblemDetailsResponse:
+      type: object
+      properties:
+        problem:
+          $ref: '#/components/schemas/Problem'
+
+    TestCaseRequest:
+      type: object
+      required:
+        - input
+        - output
+      properties:
+        input:
+          type: string
+        output:
+          type: string
+        is_sample:
+          type: boolean
+
+    TestCaseResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        problem_id:
+          type: integer
+        input:
+          type: string
+        output:
+          type: string
+        is_sample:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    TestCaseListResponse:
+      type: object
+      properties:
+        test_cases:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCaseResponse'
+
+    TestCaseAddResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        test_case:
+          $ref: '#/components/schemas/TestCaseResponse'

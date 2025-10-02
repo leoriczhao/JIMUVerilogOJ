@@ -1,0 +1,101 @@
+components:
+  schemas:
+    Submission:
+      type: object
+      properties:
+        id:
+          type: integer
+        user:
+          $ref: '../models/user.yaml#/components/schemas/User'
+        problem:
+          $ref: '../models/problem.yaml#/components/schemas/Problem'
+        code:
+          type: string
+        language:
+          type: string
+        status:
+          type: string
+        score:
+          type: integer
+        run_time:
+          type: integer
+        memory:
+          type: integer
+        error_message:
+          type: string
+        passed_tests:
+          type: integer
+        total_tests:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    SubmissionListResponse:
+      type: object
+      properties:
+        submissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Submission'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    SubmissionCreateRequest:
+      type: object
+      required:
+        - problem_id
+        - code
+      properties:
+        problem_id:
+          type: integer
+        code:
+          type: string
+        language:
+          type: string
+
+    SubmissionCreateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        submission:
+          $ref: '#/components/schemas/Submission'
+
+    SubmissionDetailsResponse:
+      type: object
+      properties:
+        submission:
+          $ref: '#/components/schemas/Submission'
+
+    SubmissionDeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    SubmissionStats:
+      type: object
+      properties:
+        total_submissions:
+          type: integer
+        accepted_submissions:
+          type: integer
+        solved_problems:
+          type: integer
+        acceptance_rate:
+          type: number
+          format: float
+
+    SubmissionStatsResponse:
+      type: object
+      properties:
+        stats:
+          $ref: '#/components/schemas/SubmissionStats'
