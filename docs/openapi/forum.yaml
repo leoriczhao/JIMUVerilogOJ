@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Verilog OJ Forum Management API
-  description: 论坛管理相关API
+  title: Verilog OJ Forum API
+  description: Verilog在线判题系统论坛管理API
   version: 1.0.0
   contact:
     name: API Support
@@ -15,6 +15,10 @@ servers:
     description: 开发环境
   - url: https://api.verilog-oj.com/api/v1
     description: 生产环境
+
+# 引用组件定义
+components:
+  $ref: './models/common.yaml#/components'
 
 paths:
   /forum/posts:
@@ -43,7 +47,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ForumPostListResponse'
+                $ref: '../models/forum.yaml#/components/schemas/ForumPostListResponse'
 
     post:
       tags:
@@ -57,26 +61,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateForumPostRequest'
+              $ref: '../models/forum.yaml#/components/schemas/CreateForumPostRequest'
       responses:
         '201':
           description: 创建成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ForumPostCreateResponse'
+                $ref: '../models/forum.yaml#/components/schemas/ForumPostCreateResponse'
         '400':
           description: 请求参数错误
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '../models/common.yaml#/components/schemas/Error'
         '401':
           description: 需要认证
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '../models/common.yaml#/components/schemas/Error'
 
   /forum/posts/{id}:
     get:
@@ -95,13 +99,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ForumPostDetailsResponse'
+                $ref: '../models/forum.yaml#/components/schemas/ForumPostDetailsResponse'
         '404':
           description: 帖子不存在
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '../models/common.yaml#/components/schemas/Error'
 
     put:
       tags:
@@ -121,20 +125,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateForumPostRequest'
+              $ref: '../models/forum.yaml#/components/schemas/UpdateForumPostRequest'
       responses:
         '200':
           description: 更新成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ForumPostUpdateResponse'
+                $ref: '../models/forum.yaml#/components/schemas/ForumPostUpdateResponse'
         '403':
           description: 无权限 - 需要帖子作者或管理员权限
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '../models/common.yaml#/components/schemas/Error'
 
     delete:
       tags:
@@ -155,13 +159,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ForumPostDeleteResponse'
+                $ref: '../models/forum.yaml#/components/schemas/ForumPostDeleteResponse'
         '403':
           description: 无权限 - 需要帖子作者或管理员权限
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '../models/common.yaml#/components/schemas/Error'
 
   /forum/posts/{id}/replies:
     get:
@@ -190,7 +194,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ForumReplyListResponse'
+                $ref: '../models/forum.yaml#/components/schemas/ForumReplyListResponse'
 
     post:
       tags:
@@ -210,226 +214,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateForumReplyRequest'
+              $ref: '../models/forum.yaml#/components/schemas/CreateForumReplyRequest'
       responses:
         '201':
           description: 创建成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ForumReplyCreateResponse'
+                $ref: '../models/forum.yaml#/components/schemas/ForumReplyCreateResponse'
         '401':
           description: 需要认证
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  schemas:
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
-
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-        username:
-          type: string
-        email:
-          type: string
-        nickname:
-          type: string
-        avatar:
-          type: string
-        school:
-          type: string
-        student_id:
-          type: string
-        role:
-          type: string
-          enum: [student, teacher, admin, super_admin]
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    ForumPost:
-      type: object
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        content:
-          type: string
-        category:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        view_count:
-          type: integer
-        reply_count:
-          type: integer
-        like_count:
-          type: integer
-        is_locked:
-          type: boolean
-        is_sticky:
-          type: boolean
-        is_public:
-          type: boolean
-        user:
-          $ref: '#/components/schemas/User'
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    ForumPostListResponse:
-      type: object
-      properties:
-        posts:
-          type: array
-          items:
-            $ref: '#/components/schemas/ForumPost'
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-
-    CreateForumPostRequest:
-      type: object
-      required:
-        - title
-        - content
-        - category
-      properties:
-        title:
-          type: string
-        content:
-          type: string
-        category:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-
-    ForumPostCreateResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        post:
-          $ref: '#/components/schemas/ForumPost'
-
-    UpdateForumPostRequest:
-      type: object
-      properties:
-        title:
-          type: string
-        content:
-          type: string
-        category:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        is_locked:
-          type: boolean
-
-    ForumPostUpdateResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        post:
-          $ref: '#/components/schemas/ForumPost'
-
-    ForumPostDeleteResponse:
-      type: object
-      properties:
-        message:
-          type: string
-
-    ForumPostDetailsResponse:
-      type: object
-      properties:
-        post:
-          $ref: '#/components/schemas/ForumPost'
-
-    ForumReply:
-      type: object
-      properties:
-        id:
-          type: integer
-        content:
-          type: string
-        post_id:
-          type: integer
-        user_id:
-          type: integer
-        parent_id:
-          type: integer
-          nullable: true
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    ForumReplyListResponse:
-      type: object
-      properties:
-        replies:
-          type: array
-          items:
-            $ref: '#/components/schemas/ForumReply'
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-
-    CreateForumReplyRequest:
-      type: object
-      required:
-        - content
-      properties:
-        content:
-          type: string
-        parent_id:
-          type: integer
-          nullable: true
-
-    ForumReplyCreateResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        reply:
-          $ref: '#/components/schemas/ForumReply'
+                $ref: '../models/common.yaml#/components/schemas/Error'
