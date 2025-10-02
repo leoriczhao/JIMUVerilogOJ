@@ -55,7 +55,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/submission.yaml#/components/schemas/SubmissionListResponse'
+                $ref: './models/submission.yaml#/components/schemas/SubmissionListResponse'
 
     post:
       tags:
@@ -68,20 +68,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/submission.yaml#/components/schemas/SubmissionCreateRequest'
+              $ref: './models/submission.yaml#/components/schemas/SubmissionCreateRequest'
       responses:
         '201':
           description: 提交成功
           content:
             application/json:
               schema:
-                $ref: '../models/submission.yaml#/components/schemas/SubmissionCreateResponse'
+                $ref: './models/submission.yaml#/components/schemas/SubmissionCreateResponse'
         '400':
           description: 请求参数错误
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /submissions/{id}:
     get:
@@ -100,13 +100,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/submission.yaml#/components/schemas/SubmissionDetailsResponse'
+                $ref: './models/submission.yaml#/components/schemas/SubmissionDetailsResponse'
         '404':
           description: 提交记录不存在
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     delete:
       tags:
@@ -127,13 +127,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/submission.yaml#/components/schemas/SubmissionDeleteResponse'
+                $ref: './models/submission.yaml#/components/schemas/SubmissionDeleteResponse'
         '403':
           description: 需要管理员权限
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /submissions/user:
     get:
@@ -159,7 +159,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/submission.yaml#/components/schemas/SubmissionListResponse'
+                $ref: './models/submission.yaml#/components/schemas/SubmissionListResponse'
 
   /submissions/stats:
     get:
@@ -174,4 +174,4 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/submission.yaml#/components/schemas/SubmissionStatsResponse'
+                $ref: './models/submission.yaml#/components/schemas/SubmissionStatsResponse'

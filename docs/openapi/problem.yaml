@@ -52,7 +52,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/problem.yaml#/components/schemas/ProblemListResponse'
+                $ref: './models/problem.yaml#/components/schemas/ProblemListResponse'
 
     post:
       tags:
@@ -66,26 +66,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/problem.yaml#/components/schemas/ProblemCreateRequest'
+              $ref: './models/problem.yaml#/components/schemas/ProblemCreateRequest'
       responses:
         '201':
           description: 创建成功
           content:
             application/json:
               schema:
-                $ref: '../models/problem.yaml#/components/schemas/ProblemCreateResponse'
+                $ref: './models/problem.yaml#/components/schemas/ProblemCreateResponse'
         '400':
           description: 请求参数错误
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
         '403':
           description: 需要教师或管理员权限
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /problems/{id}:
     get:
@@ -104,13 +104,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/problem.yaml#/components/schemas/ProblemDetailsResponse'
+                $ref: './models/problem.yaml#/components/schemas/ProblemDetailsResponse'
         '404':
           description: 题目不存在
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     put:
       tags:
@@ -130,26 +130,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/problem.yaml#/components/schemas/ProblemUpdateRequest'
+              $ref: './models/problem.yaml#/components/schemas/ProblemUpdateRequest'
       responses:
         '200':
           description: 更新成功
           content:
             application/json:
               schema:
-                $ref: '../models/problem.yaml#/components/schemas/ProblemUpdateResponse'
+                $ref: './models/problem.yaml#/components/schemas/ProblemUpdateResponse'
         '400':
           description: 请求参数错误
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
         '403':
           description: 无权限 - 需要题目作者或管理员权限
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     delete:
       tags:
@@ -170,13 +170,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/problem.yaml#/components/schemas/ProblemDeleteResponse'
+                $ref: './models/problem.yaml#/components/schemas/ProblemDeleteResponse'
         '403':
           description: 无权限 - 需要题目作者或管理员权限
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /problems/{id}/testcases:
     get:
@@ -196,7 +196,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/problem.yaml#/components/schemas/TestCaseListResponse'
+                $ref: './models/problem.yaml#/components/schemas/TestCaseListResponse'
 
     post:
       tags:
@@ -216,20 +216,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/problem.yaml#/components/schemas/TestCaseRequest'
+              $ref: './models/problem.yaml#/components/schemas/TestCaseRequest'
       responses:
         '201':
           description: 添加成功
           content:
             application/json:
               schema:
-                $ref: '../models/problem.yaml#/components/schemas/TestCaseAddResponse'
+                $ref: './models/problem.yaml#/components/schemas/TestCaseAddResponse'
         '403':
           description: 无权限 - 需要题目作者或管理员权限
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /problems/{id}/submissions:
     get:
@@ -258,4 +258,4 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/submission.yaml#/components/schemas/SubmissionListResponse'
+                $ref: './models/submission.yaml#/components/schemas/SubmissionListResponse'

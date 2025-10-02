@@ -35,19 +35,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/admin.yaml#/components/schemas/AdminInfo'
+                $ref: './models/admin.yaml#/components/schemas/AdminInfo'
         '401':
           description: 未认证
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
         '403':
           description: 无权限
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   # 用户管理
   /admin/users:
@@ -88,7 +88,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/admin.yaml#/components/schemas/AdminUserList'
+                $ref: './models/admin.yaml#/components/schemas/AdminUserList'
 
     post:
       tags:
@@ -101,14 +101,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/admin.yaml#/components/schemas/CreateUserRequest'
+              $ref: './models/admin.yaml#/components/schemas/CreateUserRequest'
       responses:
         '201':
           description: 创建成功
           content:
             application/json:
               schema:
-                $ref: '../models/user.yaml#/components/schemas/User'
+                $ref: './models/user.yaml#/components/schemas/User'
 
   /admin/users/{id}:
     get:
@@ -129,7 +129,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/admin.yaml#/components/schemas/AdminUserDetail'
+                $ref: './models/admin.yaml#/components/schemas/AdminUserDetail'
 
     put:
       tags:
@@ -148,7 +148,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/admin.yaml#/components/schemas/UpdateUserRequest'
+              $ref: './models/admin.yaml#/components/schemas/UpdateUserRequest'
       responses:
         '200':
           description: 更新成功
@@ -188,7 +188,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/admin.yaml#/components/schemas/BanUserRequest'
+              $ref: './models/admin.yaml#/components/schemas/BanUserRequest'
       responses:
         '200':
           description: 封禁成功
@@ -257,7 +257,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/admin.yaml#/components/schemas/AdminSubmissionList'
+                $ref: './models/admin.yaml#/components/schemas/AdminSubmissionList'
 
   /admin/submissions/{id}:
     get:
@@ -278,7 +278,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/admin.yaml#/components/schemas/AdminSubmissionDetail'
+                $ref: './models/admin.yaml#/components/schemas/AdminSubmissionDetail'
 
     delete:
       tags:
@@ -353,7 +353,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/admin.yaml#/components/schemas/AdminProblemList'
+                $ref: './models/admin.yaml#/components/schemas/AdminProblemList'
 
     post:
       tags:
@@ -366,7 +366,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/admin.yaml#/components/schemas/AdminCreateProblemRequest'
+              $ref: './models/admin.yaml#/components/schemas/AdminCreateProblemRequest'
       responses:
         '201':
           description: 创建成功
@@ -390,7 +390,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/admin.yaml#/components/schemas/AdminProblemDetail'
+                $ref: './models/admin.yaml#/components/schemas/AdminProblemDetail'
 
     put:
       tags:
@@ -409,7 +409,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/admin.yaml#/components/schemas/AdminUpdateProblemRequest'
+              $ref: './models/admin.yaml#/components/schemas/AdminUpdateProblemRequest'
       responses:
         '200':
           description: 更新成功
@@ -495,7 +495,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/admin.yaml#/components/schemas/AdminNewsList'
+                $ref: './models/admin.yaml#/components/schemas/AdminNewsList'
 
     post:
       tags:
@@ -508,7 +508,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/admin.yaml#/components/schemas/AdminCreateNewsRequest'
+              $ref: './models/admin.yaml#/components/schemas/AdminCreateNewsRequest'
       responses:
         '201':
           description: 创建成功
@@ -532,7 +532,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/admin.yaml#/components/schemas/AdminNewsDetail'
+                $ref: './models/admin.yaml#/components/schemas/AdminNewsDetail'
 
     put:
       tags:
@@ -551,7 +551,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/admin.yaml#/components/schemas/AdminUpdateNewsRequest'
+              $ref: './models/admin.yaml#/components/schemas/AdminUpdateNewsRequest'
       responses:
         '200':
           description: 更新成功
@@ -606,7 +606,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/admin.yaml#/components/schemas/AdminForumPostList'
+                $ref: './models/admin.yaml#/components/schemas/AdminForumPostList'
 
   /admin/forum/posts/{id}:
     get:
@@ -627,7 +627,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/admin.yaml#/components/schemas/AdminForumPostDetail'
+                $ref: './models/admin.yaml#/components/schemas/AdminForumPostDetail'
 
     delete:
       tags:

@@ -47,7 +47,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/news.yaml#/components/schemas/NewsListResponse'
+                $ref: './models/news.yaml#/components/schemas/NewsListResponse'
 
     post:
       tags:
@@ -61,26 +61,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/news.yaml#/components/schemas/CreateNewsRequest'
+              $ref: './models/news.yaml#/components/schemas/CreateNewsRequest'
       responses:
         '201':
           description: 创建成功
           content:
             application/json:
               schema:
-                $ref: '../models/news.yaml#/components/schemas/NewsCreateResponse'
+                $ref: './models/news.yaml#/components/schemas/NewsCreateResponse'
         '400':
           description: 请求参数错误
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
         '403':
           description: 需要管理员权限
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /news/{id}:
     get:
@@ -99,13 +99,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/news.yaml#/components/schemas/NewsDetailsResponse'
+                $ref: './models/news.yaml#/components/schemas/NewsDetailsResponse'
         '404':
           description: 新闻不存在
           content:
             application/json:
               schema:
-                $ref: '../models/common.yaml#/components/schemas/Error'
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     put:
       tags:
@@ -124,14 +124,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '../models/news.yaml#/components/schemas/UpdateNewsRequest'
+              $ref: './models/news.yaml#/components/schemas/UpdateNewsRequest'
       responses:
         '200':
           description: 更新成功
           content:
             application/json:
               schema:
-                $ref: '../models/news.yaml#/components/schemas/NewsUpdateResponse'
+                $ref: './models/news.yaml#/components/schemas/NewsUpdateResponse'
 
     delete:
       tags:
@@ -151,4 +151,4 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '../models/news.yaml#/components/schemas/NewsDeleteResponse'
+                $ref: './models/news.yaml#/components/schemas/NewsDeleteResponse'
