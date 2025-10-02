@@ -61,3 +61,8 @@ type NewsUpdateResponse struct {
 type NewsDeleteResponse struct {
 	Message string `json:"message"`
 }
+
+// NewsDetailsResponse 新闻详情响应
+type NewsDetailsResponse struct {
+	News NewsResponse `json:"news"`
+}

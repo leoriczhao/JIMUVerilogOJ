@@ -117,8 +117,8 @@ func (h *ProblemHandler) GetProblem(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"problem": dto.ProblemDomainToResponse(problem),
+	c.JSON(http.StatusOK, dto.ProblemDetailsResponse{
+		Problem: dto.ProblemDomainToResponse(problem),
 	})
 }
 

@@ -90,6 +90,11 @@ type ProblemDeleteResponse struct {
 	Message string `json:"message"`
 }
 
+// ProblemDetailsResponse 题目详情响应
+type ProblemDetailsResponse struct {
+	Problem ProblemResponse `json:"problem"`
+}
+
 // TestCaseResponse 测试用例响应
 type TestCaseResponse struct {
 	ID        uint      `json:"id"`

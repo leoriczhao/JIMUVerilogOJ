@@ -114,8 +114,8 @@ func (h *SubmissionHandler) GetSubmission(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"submission": dto.SubmissionDomainToResponse(submission),
+	c.JSON(http.StatusOK, dto.SubmissionDetailsResponse{
+		Submission: dto.SubmissionDomainToResponse(submission),
 	})
 }
 
@@ -280,8 +280,34 @@ func (h *SubmissionHandler) GetSubmissionStats(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"stats": stats,
+	// Safely extract stats with nil checks
+	totalSubmissions := 0
+	if val, ok := stats["total_submissions"]; ok && val != nil {
+		totalSubmissions = int(val.(int64))
+	}
+
+	acceptedSubmissions := 0
+	if val, ok := stats["accepted_submissions"]; ok && val != nil {
+		acceptedSubmissions = int(val.(int64))
+	}
+
+	solvedProblems := 0
+	if val, ok := stats["solved_problems"]; ok && val != nil {
+		solvedProblems = int(val.(int64))
+	}
+
+	acceptanceRate := 0.0
+	if val, ok := stats["acceptance_rate"]; ok && val != nil {
+		acceptanceRate = val.(float64)
+	}
+
+	c.JSON(http.StatusOK, dto.SubmissionStatsResponse{
+		Stats: dto.SubmissionStats{
+			TotalSubmissions:    totalSubmissions,
+			AcceptedSubmissions: acceptedSubmissions,
+			SolvedProblems:      solvedProblems,
+			AcceptanceRate:      acceptanceRate,
+		},
 	})
 }
 
