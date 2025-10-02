@@ -49,6 +49,49 @@ paths:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
 
+  # 系统统计
+  /admin/stats:
+    get:
+      tags:
+        - 系统统计
+      summary: 系统统计信息
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: './models/admin.yaml#/components/schemas/SystemStats'
+        '401':
+          description: 未认证
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+        '403':
+          description: 无权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+
+  /admin/stats/dashboard:
+    get:
+      tags:
+        - 系统统计
+      summary: 管理面板数据
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: './models/admin.yaml#/components/schemas/DashboardStats'
+
   # 用户管理
   /admin/users:
     get:
@@ -712,3 +755,72 @@ paths:
       responses:
         '200':
           description: 取消置顶成功
+
+  # 系统配置
+  /admin/settings:
+    get:
+      tags:
+        - 系统配置
+      summary: 获取系统配置
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: './models/admin.yaml#/components/schemas/SystemSettings'
+
+    put:
+      tags:
+        - 系统配置
+      summary: 更新系统配置
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './models/admin.yaml#/components/schemas/UpdateSystemSettingsRequest'
+      responses:
+        '200':
+          description: 更新成功
+
+  # 判题服务管理
+  /admin/judges:
+    get:
+      tags:
+        - 判题服务
+      summary: 获取判题服务列表
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: './models/admin.yaml#/components/schemas/JudgeServiceList'
+
+  /admin/judges/{id}:
+    get:
+      tags:
+        - 判题服务
+      summary: 获取判题服务详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: './models/admin.yaml#/components/schemas/JudgeServiceDetail'
