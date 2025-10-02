@@ -92,3 +92,8 @@ type ForumReplyCreateResponse struct {
 	Message string             `json:"message"`
 	Reply   ForumReplyResponse `json:"reply"`
 }
+
+// ForumPostDetailsResponse 帖子详情响应
+type ForumPostDetailsResponse struct {
+	Post ForumPostResponse `json:"post"`
+}

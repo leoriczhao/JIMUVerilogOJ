@@ -360,22 +360,23 @@ func TestSubmissionHandler_GetSubmissionStats(t *testing.T) {
 		handler := NewSubmissionHandler(mockService)
 
 		stats := map[string]interface{}{
-			"total":    10,
-			"accepted": 7,
-			"failed":   3,
+			"total_submissions":    int64(10),
+			"accepted_submissions": int64(7),
+			"solved_problems":      int64(5),
+			"acceptance_rate":      0.7,
 		}
 		mockService.On("GetSubmissionStats", uint(1)).Return(stats, nil)
 
 		handler.GetSubmissionStats(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		var response map[string]interface{}
+		var response dto.SubmissionStatsResponse
 		err := json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		statsData, ok := response["stats"].(map[string]interface{})
-		assert.True(t, ok)
-		assert.Equal(t, float64(10), statsData["total"])
-		assert.Equal(t, float64(7), statsData["accepted"])
+		assert.Equal(t, 10, response.Stats.TotalSubmissions)
+		assert.Equal(t, 7, response.Stats.AcceptedSubmissions)
+		assert.Equal(t, 5, response.Stats.SolvedProblems)
+		assert.Equal(t, 0.7, response.Stats.AcceptanceRate)
 		mockService.AssertExpectations(t)
 	})
 

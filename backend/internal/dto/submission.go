@@ -42,15 +42,25 @@ type SubmissionCreateResponse struct {
 	Submission SubmissionResponse `json:"submission"`
 }
 
+// SubmissionStats 提交统计
+type SubmissionStats struct {
+	TotalSubmissions    int     `json:"total_submissions"`
+	AcceptedSubmissions int     `json:"accepted_submissions"`
+	SolvedProblems      int     `json:"solved_problems"`
+	AcceptanceRate      float64 `json:"acceptance_rate"`
+}
+
 // SubmissionStatsResponse 提交统计响应
 type SubmissionStatsResponse struct {
-	TotalSubmitted int     `json:"total_submitted"`
-	TotalAccepted  int     `json:"total_accepted"`
-	TotalProblems  int     `json:"total_problems"`
-	AcceptanceRate float64 `json:"acceptance_rate"`
+	Stats SubmissionStats `json:"stats"`
 }
 
 // SubmissionDeleteResponse 删除提交响应
 type SubmissionDeleteResponse struct {
 	Message string `json:"message"`
+}
+
+// SubmissionDetailsResponse 提交详情响应
+type SubmissionDetailsResponse struct {
+	Submission SubmissionResponse `json:"submission"`
 }

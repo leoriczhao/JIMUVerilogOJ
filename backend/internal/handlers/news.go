@@ -94,7 +94,9 @@ func (h *NewsHandler) GetNews(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "News not found"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"news": dto.NewsDomainToResponse(news)})
+	c.JSON(http.StatusOK, dto.NewsDetailsResponse{
+		News: dto.NewsDomainToResponse(news),
+	})
 }
 
 // CreateNews handles the request to create a new news article.
