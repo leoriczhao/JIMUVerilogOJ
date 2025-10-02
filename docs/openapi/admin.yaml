@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Verilog OJ Admin Management API
-  description: 管理后台API - 系统管理、用户管理、内容管理
+  title: Verilog OJ Admin API
+  description: Verilog在线判题系统管理员API
   version: 1.0.0
   contact:
     name: API Support
@@ -15,6 +15,10 @@ servers:
     description: 开发环境
   - url: https://api.verilog-oj.com/api/v1
     description: 生产环境
+
+# 引用组件定义
+components:
+  $ref: './models/common.yaml#/components'
 
 paths:
   # 管理员身份验证
@@ -31,54 +35,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminInfo'
+                $ref: '../models/admin.yaml#/components/schemas/AdminInfo'
         '401':
           description: 未认证
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '../models/common.yaml#/components/schemas/Error'
         '403':
           description: 无权限
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-
-  # 系统统计
-  /admin/stats:
-    get:
-      tags:
-        - 系统统计
-      summary: 系统统计信息
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SystemStats'
-        '401':
-          description: 未认证
-        '403':
-          description: 无权限
-
-  /admin/stats/dashboard:
-    get:
-      tags:
-        - 系统统计
-      summary: 管理面板数据
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DashboardStats'
+                $ref: '../models/common.yaml#/components/schemas/Error'
 
   # 用户管理
   /admin/users:
@@ -119,7 +88,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminUserList'
+                $ref: '../models/admin.yaml#/components/schemas/AdminUserList'
 
     post:
       tags:
@@ -132,14 +101,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateUserRequest'
+              $ref: '../models/admin.yaml#/components/schemas/CreateUserRequest'
       responses:
         '201':
           description: 创建成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '../models/user.yaml#/components/schemas/User'
 
   /admin/users/{id}:
     get:
@@ -160,7 +129,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminUserDetail'
+                $ref: '../models/admin.yaml#/components/schemas/AdminUserDetail'
 
     put:
       tags:
@@ -179,7 +148,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateUserRequest'
+              $ref: '../models/admin.yaml#/components/schemas/UpdateUserRequest'
       responses:
         '200':
           description: 更新成功
@@ -200,6 +169,7 @@ paths:
         '200':
           description: 删除成功
 
+
   /admin/users/{id}/ban:
     post:
       tags:
@@ -218,7 +188,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BanUserRequest'
+              $ref: '../models/admin.yaml#/components/schemas/BanUserRequest'
       responses:
         '200':
           description: 封禁成功
@@ -239,156 +209,6 @@ paths:
       responses:
         '200':
           description: 解封成功
-
-  # 题目管理
-  /admin/problems:
-    get:
-      tags:
-        - 题目管理
-      summary: 获取题目列表
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: page
-          in: query
-          schema:
-            type: integer
-            default: 1
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 20
-        - name: difficulty
-          in: query
-          schema:
-            type: string
-            enum: [Easy, Medium, Hard]
-        - name: status
-          in: query
-          schema:
-            type: string
-            enum: [public, private, draft]
-        - name: author_id
-          in: query
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminProblemList'
-
-    post:
-      tags:
-        - 题目管理
-      summary: 创建题目
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminCreateProblemRequest'
-      responses:
-        '201':
-          description: 创建成功
-
-  /admin/problems/{id}:
-    get:
-      tags:
-        - 题目管理
-      summary: 获取题目详情
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AdminProblemDetail'
-
-    put:
-      tags:
-        - 题目管理
-      summary: 更新题目
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AdminUpdateProblemRequest'
-      responses:
-        '200':
-          description: 更新成功
-
-    delete:
-      tags:
-        - 题目管理
-      summary: 删除题目
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 删除成功
-
-  /admin/problems/{id}/publish:
-    post:
-      tags:
-        - 题目管理
-      summary: 发布题目
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 发布成功
-
-  /admin/problems/{id}/unpublish:
-    post:
-      tags:
-        - 题目管理
-      summary: 取消发布题目
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 取消发布成功
 
   # 提交管理
   /admin/submissions:
@@ -437,7 +257,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminSubmissionList'
+                $ref: '../models/admin.yaml#/components/schemas/AdminSubmissionList'
 
   /admin/submissions/{id}:
     get:
@@ -458,7 +278,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminSubmissionDetail'
+                $ref: '../models/admin.yaml#/components/schemas/AdminSubmissionDetail'
 
     delete:
       tags:
@@ -476,6 +296,7 @@ paths:
         '200':
           description: 删除成功
 
+
   /admin/submissions/{id}/rejudge:
     post:
       tags:
@@ -492,6 +313,157 @@ paths:
       responses:
         '200':
           description: 重新判题已启动
+
+  # 题目管理
+  /admin/problems:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [Easy, Medium, Hard]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [public, private, draft]
+        - name: author_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/admin.yaml#/components/schemas/AdminProblemList'
+
+    post:
+      tags:
+        - 题目管理
+      summary: 创建题目
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../models/admin.yaml#/components/schemas/AdminCreateProblemRequest'
+      responses:
+        '201':
+          description: 创建成功
+
+  /admin/problems/{id}:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '../models/admin.yaml#/components/schemas/AdminProblemDetail'
+
+    put:
+      tags:
+        - 题目管理
+      summary: 更新题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../models/admin.yaml#/components/schemas/AdminUpdateProblemRequest'
+      responses:
+        '200':
+          description: 更新成功
+
+    delete:
+      tags:
+        - 题目管理
+      summary: 删除题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+
+  /admin/problems/{id}/publish:
+    post:
+      tags:
+        - 题目管理
+      summary: 发布题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 发布成功
+
+  /admin/problems/{id}/unpublish:
+    post:
+      tags:
+        - 题目管理
+      summary: 取消发布题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 取消发布成功
 
   # 新闻管理
   /admin/news:
@@ -523,7 +495,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminNewsList'
+                $ref: '../models/admin.yaml#/components/schemas/AdminNewsList'
 
     post:
       tags:
@@ -536,7 +508,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminCreateNewsRequest'
+              $ref: '../models/admin.yaml#/components/schemas/AdminCreateNewsRequest'
       responses:
         '201':
           description: 创建成功
@@ -560,7 +532,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminNewsDetail'
+                $ref: '../models/admin.yaml#/components/schemas/AdminNewsDetail'
 
     put:
       tags:
@@ -579,7 +551,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AdminUpdateNewsRequest'
+              $ref: '../models/admin.yaml#/components/schemas/AdminUpdateNewsRequest'
       responses:
         '200':
           description: 更新成功
@@ -634,7 +606,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminForumPostList'
+                $ref: '../models/admin.yaml#/components/schemas/AdminForumPostList'
 
   /admin/forum/posts/{id}:
     get:
@@ -655,7 +627,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdminForumPostDetail'
+                $ref: '../models/admin.yaml#/components/schemas/AdminForumPostDetail'
 
     delete:
       tags:
@@ -740,724 +712,3 @@ paths:
       responses:
         '200':
           description: 取消置顶成功
-
-  # 系统配置
-  /admin/settings:
-    get:
-      tags:
-        - 系统配置
-      summary: 获取系统配置
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SystemSettings'
-
-    put:
-      tags:
-        - 系统配置
-      summary: 更新系统配置
-      security:
-        - BearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateSystemSettingsRequest'
-      responses:
-        '200':
-          description: 更新成功
-
-  # 判题服务管理
-  /admin/judges:
-    get:
-      tags:
-        - 判题服务
-      summary: 获取判题服务列表
-      security:
-        - BearerAuth: []
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JudgeServiceList'
-
-  /admin/judges/{id}:
-    get:
-      tags:
-        - 判题服务
-      summary: 获取判题服务详情
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 获取成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JudgeServiceDetail'
-
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  schemas:
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
-        code:
-          type: integer
-
-    User:
-      type: object
-      properties:
-        id:
-          type: integer
-        username:
-          type: string
-        email:
-          type: string
-        nickname:
-          type: string
-        avatar:
-          type: string
-        school:
-          type: string
-        student_id:
-          type: string
-        role:
-          type: string
-          enum: [student, teacher, admin, super_admin]
-        solved:
-          type: integer
-        submitted:
-          type: integer
-        rating:
-          type: integer
-        is_active:
-          type: boolean
-        created_at:
-          type: string
-          format: date-time
-        last_login_at:
-          type: string
-          format: date-time
-
-    AdminInfo:
-      type: object
-      properties:
-        user_id:
-          type: integer
-        username:
-          type: string
-        role:
-          type: string
-        permissions:
-          type: array
-          items:
-            type: string
-
-    SystemStats:
-      type: object
-      properties:
-        users:
-          type: integer
-        problems:
-          type: integer
-        submissions:
-          type: integer
-        judges_online:
-          type: integer
-
-    DashboardStats:
-      type: object
-      properties:
-        total_users:
-          type: integer
-        active_users:
-          type: integer
-        total_problems:
-          type: integer
-        public_problems:
-          type: integer
-        total_submissions:
-          type: integer
-        recent_submissions:
-          type: integer
-        judges_online:
-          type: integer
-        judges_total:
-          type: integer
-        system_load:
-          type: number
-        memory_usage:
-          type: number
-
-    AdminUserList:
-      type: object
-      properties:
-        users:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-
-    AdminUserDetail:
-      allOf:
-        - $ref: '#/components/schemas/User'
-        - type: object
-          properties:
-            submission_stats:
-              type: object
-              properties:
-                total:
-                  type: integer
-                accepted:
-                  type: integer
-                acceptance_rate:
-                  type: number
-            login_history:
-              type: array
-              items:
-                type: object
-                properties:
-                  ip:
-                    type: string
-                  timestamp:
-                    type: string
-                    format: date-time
-
-    CreateUserRequest:
-      type: object
-      required:
-        - username
-        - email
-        - password
-        - role
-      properties:
-        username:
-          type: string
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-        nickname:
-          type: string
-        role:
-          type: string
-          enum: [student, teacher, admin]
-        school:
-          type: string
-        student_id:
-          type: string
-
-    UpdateUserRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-        nickname:
-          type: string
-        role:
-          type: string
-          enum: [student, teacher, admin]
-        school:
-          type: string
-        student_id:
-          type: string
-        is_active:
-          type: boolean
-
-    BanUserRequest:
-      type: object
-      required:
-        - reason
-      properties:
-        reason:
-          type: string
-        duration:
-          type: integer
-          description: 封禁天数，0表示永久封禁
-
-    Problem:
-      type: object
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        description:
-          type: string
-        input_desc:
-          type: string
-        output_desc:
-          type: string
-        difficulty:
-          type: string
-          enum: [Easy, Medium, Hard]
-        category:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        time_limit:
-          type: integer
-        memory_limit:
-          type: integer
-        submit_count:
-          type: integer
-        accepted_count:
-          type: integer
-        is_public:
-          type: boolean
-        author:
-          $ref: '#/components/schemas/User'
-        created_at:
-          type: string
-          format: date-time
-
-    AdminProblemList:
-      type: object
-      properties:
-        problems:
-          type: array
-          items:
-            $ref: '#/components/schemas/Problem'
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-
-    AdminProblemDetail:
-      allOf:
-        - $ref: '#/components/schemas/Problem'
-        - type: object
-          properties:
-            test_cases:
-              type: array
-              items:
-                type: object
-                properties:
-                  input:
-                    type: string
-                  output:
-                    type: string
-                  is_sample:
-                    type: boolean
-            recent_submissions:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  user:
-                    $ref: '#/components/schemas/User'
-                  status:
-                    type: string
-                  created_at:
-                    type: string
-                    format: date-time
-
-    AdminCreateProblemRequest:
-      type: object
-      required:
-        - title
-        - description
-      properties:
-        title:
-          type: string
-        description:
-          type: string
-        input_desc:
-          type: string
-        output_desc:
-          type: string
-        difficulty:
-          type: string
-          enum: [Easy, Medium, Hard]
-        category:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        time_limit:
-          type: integer
-          default: 1000
-        memory_limit:
-          type: integer
-          default: 128
-        is_public:
-          type: boolean
-          default: false
-        test_cases:
-          type: array
-          items:
-            type: object
-            properties:
-              input:
-                type: string
-              output:
-                type: string
-              is_sample:
-                type: boolean
-
-    AdminUpdateProblemRequest:
-      type: object
-      properties:
-        title:
-          type: string
-        description:
-          type: string
-        input_desc:
-          type: string
-        output_desc:
-          type: string
-        difficulty:
-          type: string
-          enum: [Easy, Medium, Hard]
-        category:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        time_limit:
-          type: integer
-        memory_limit:
-          type: integer
-        is_public:
-          type: boolean
-
-    Submission:
-      type: object
-      properties:
-        id:
-          type: integer
-        user:
-          $ref: '#/components/schemas/User'
-        problem:
-          $ref: '#/components/schemas/Problem'
-        code:
-          type: string
-        language:
-          type: string
-        status:
-          type: string
-        score:
-          type: integer
-        run_time:
-          type: integer
-        memory:
-          type: integer
-        error_message:
-          type: string
-        passed_tests:
-          type: integer
-        total_tests:
-          type: integer
-        created_at:
-          type: string
-          format: date-time
-
-    AdminSubmissionList:
-      type: object
-      properties:
-        submissions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Submission'
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-
-    AdminSubmissionDetail:
-      allOf:
-        - $ref: '#/components/schemas/Submission'
-        - type: object
-          properties:
-            judge_log:
-              type: string
-            test_results:
-              type: array
-              items:
-                type: object
-                properties:
-                  test_case_id:
-                    type: integer
-                  status:
-                    type: string
-                  time_used:
-                    type: integer
-                  memory_used:
-                    type: integer
-                  error_message:
-                    type: string
-
-    News:
-      type: object
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        content:
-          type: string
-        summary:
-          type: string
-        category:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        is_published:
-          type: boolean
-        author:
-          $ref: '#/components/schemas/User'
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    AdminNewsList:
-      type: object
-      properties:
-        news:
-          type: array
-          items:
-            $ref: '#/components/schemas/News'
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-
-    AdminNewsDetail:
-      allOf:
-        - $ref: '#/components/schemas/News'
-        - type: object
-          properties:
-            view_count:
-              type: integer
-            like_count:
-              type: integer
-
-    AdminCreateNewsRequest:
-      type: object
-      required:
-        - title
-        - content
-      properties:
-        title:
-          type: string
-        content:
-          type: string
-        summary:
-          type: string
-        category:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        is_published:
-          type: boolean
-          default: false
-
-    AdminUpdateNewsRequest:
-      type: object
-      properties:
-        title:
-          type: string
-        content:
-          type: string
-        summary:
-          type: string
-        category:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        is_published:
-          type: boolean
-
-    ForumPost:
-      type: object
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        content:
-          type: string
-        category:
-          type: string
-        tags:
-          type: string
-        user:
-          $ref: '#/components/schemas/User'
-        reply_count:
-          type: integer
-        view_count:
-          type: integer
-        like_count:
-          type: integer
-        is_sticky:
-          type: boolean
-        is_locked:
-          type: boolean
-        is_public:
-          type: boolean
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    AdminForumPostList:
-      type: object
-      properties:
-        posts:
-          type: array
-          items:
-            $ref: '#/components/schemas/ForumPost'
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-
-    AdminForumPostDetail:
-      allOf:
-        - $ref: '#/components/schemas/ForumPost'
-        - type: object
-          properties:
-            recent_replies:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  content:
-                    type: string
-                  user:
-                    $ref: '#/components/schemas/User'
-                  created_at:
-                    type: string
-                    format: date-time
-
-    SystemSettings:
-      type: object
-      properties:
-        site_name:
-          type: string
-        site_description:
-          type: string
-        registration_enabled:
-          type: boolean
-        maintenance_mode:
-          type: boolean
-        max_submissions_per_day:
-          type: integer
-        judge_timeout:
-          type: integer
-        email_smtp_host:
-          type: string
-        email_smtp_port:
-          type: integer
-
-    UpdateSystemSettingsRequest:
-      type: object
-      properties:
-        site_name:
-          type: string
-        site_description:
-          type: string
-        registration_enabled:
-          type: boolean
-        maintenance_mode:
-          type: boolean
-        max_submissions_per_day:
-          type: integer
-        judge_timeout:
-          type: integer
-        email_smtp_host:
-          type: string
-        email_smtp_port:
-          type: integer
-
-    JudgeServiceList:
-      type: object
-      properties:
-        judges:
-          type: array
-          items:
-            $ref: '#/components/schemas/JudgeServiceDetail'
-
-    JudgeServiceDetail:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        status:
-          type: string
-          enum: [online, offline, busy]
-        version:
-          type: string
-        supported_languages:
-          type: array
-          items:
-            type: string
-        cpu_usage:
-          type: number
-        memory_usage:
-          type: number
-        queue_length:
-          type: integer
-        last_heartbeat:
-          type: string
-          format: date-time

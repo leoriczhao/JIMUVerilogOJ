@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Verilog OJ News Management API
-  description: 新闻管理相关API
+  title: Verilog OJ News API
+  description: Verilog在线判题系统新闻管理API
   version: 1.0.0
   contact:
     name: API Support
@@ -15,6 +15,10 @@ servers:
     description: 开发环境
   - url: https://api.verilog-oj.com/api/v1
     description: 生产环境
+
+# 引用组件定义
+components:
+  $ref: './models/common.yaml#/components'
 
 paths:
   /news:
@@ -43,7 +47,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NewsListResponse'
+                $ref: '../models/news.yaml#/components/schemas/NewsListResponse'
 
     post:
       tags:
@@ -57,26 +61,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateNewsRequest'
+              $ref: '../models/news.yaml#/components/schemas/CreateNewsRequest'
       responses:
         '201':
           description: 创建成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NewsCreateResponse'
+                $ref: '../models/news.yaml#/components/schemas/NewsCreateResponse'
         '400':
           description: 请求参数错误
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '../models/common.yaml#/components/schemas/Error'
         '403':
           description: 需要管理员权限
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '../models/common.yaml#/components/schemas/Error'
 
   /news/{id}:
     get:
@@ -95,13 +99,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NewsDetailsResponse'
+                $ref: '../models/news.yaml#/components/schemas/NewsDetailsResponse'
         '404':
           description: 新闻不存在
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '../models/common.yaml#/components/schemas/Error'
 
     put:
       tags:
@@ -120,14 +124,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateNewsRequest'
+              $ref: '../models/news.yaml#/components/schemas/UpdateNewsRequest'
       responses:
         '200':
           description: 更新成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NewsUpdateResponse'
+                $ref: '../models/news.yaml#/components/schemas/NewsUpdateResponse'
 
     delete:
       tags:
@@ -147,131 +151,4 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NewsDeleteResponse'
-
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  schemas:
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-        message:
-          type: string
-
-    News:
-      type: object
-      properties:
-        id:
-          type: integer
-        title:
-          type: string
-        content:
-          type: string
-        summary:
-          type: string
-        category:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        is_published:
-          type: boolean
-        author_id:
-          type: integer
-        view_count:
-          type: integer
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    NewsListResponse:
-      type: object
-      properties:
-        news:
-          type: array
-          items:
-            $ref: '#/components/schemas/News'
-        total:
-          type: integer
-        page:
-          type: integer
-        limit:
-          type: integer
-
-    CreateNewsRequest:
-      type: object
-      required:
-        - title
-        - content
-      properties:
-        title:
-          type: string
-        content:
-          type: string
-        summary:
-          type: string
-        category:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        is_published:
-          type: boolean
-
-    NewsCreateResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        news:
-          $ref: '#/components/schemas/News'
-
-    UpdateNewsRequest:
-      type: object
-      properties:
-        title:
-          type: string
-        content:
-          type: string
-        summary:
-          type: string
-        category:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        is_published:
-          type: boolean
-
-    NewsUpdateResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        news:
-          $ref: '#/components/schemas/News'
-
-    NewsDeleteResponse:
-      type: object
-      properties:
-        message:
-          type: string
-
-    NewsDetailsResponse:
-      type: object
-      properties:
-        news:
-          $ref: '#/components/schemas/News'
+                $ref: '../models/news.yaml#/components/schemas/NewsDeleteResponse'
