@@ -1,0 +1,277 @@
+openapi: 3.0.3
+info:
+  title: Verilog OJ News Management API
+  description: 新闻管理相关API
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@verilog-oj.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: 开发环境
+  - url: https://api.verilog-oj.com/api/v1
+    description: 生产环境
+
+paths:
+  /news:
+    get:
+      tags:
+        - 新闻管理
+      summary: 获取新闻列表
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsListResponse'
+
+    post:
+      tags:
+        - 新闻管理
+      summary: 创建新闻
+      description: 需要管理员权限
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNewsRequest'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsCreateResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 需要管理员权限
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /news/{id}:
+    get:
+      tags:
+        - 新闻管理
+      summary: 获取新闻详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsDetailsResponse'
+        '404':
+          description: 新闻不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - 新闻管理
+      summary: 更新新闻
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNewsRequest'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsUpdateResponse'
+
+    delete:
+      tags:
+        - 新闻管理
+      summary: 删除新闻
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewsDeleteResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+    News:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        summary:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        is_published:
+          type: boolean
+        author_id:
+          type: integer
+        view_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    NewsListResponse:
+      type: object
+      properties:
+        news:
+          type: array
+          items:
+            $ref: '#/components/schemas/News'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    CreateNewsRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        summary:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        is_published:
+          type: boolean
+
+    NewsCreateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        news:
+          $ref: '#/components/schemas/News'
+
+    UpdateNewsRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        summary:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        is_published:
+          type: boolean
+
+    NewsUpdateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        news:
+          $ref: '#/components/schemas/News'
+
+    NewsDeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    NewsDetailsResponse:
+      type: object
+      properties:
+        news:
+          $ref: '#/components/schemas/News'

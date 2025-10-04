@@ -1,0 +1,167 @@
+components:
+  schemas:
+    ForumPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        view_count:
+          type: integer
+        reply_count:
+          type: integer
+        like_count:
+          type: integer
+        is_locked:
+          type: boolean
+        is_sticky:
+          type: boolean
+        is_public:
+          type: boolean
+        user:
+          $ref: '../models/user.yaml#/components/schemas/User'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ForumPostListResponse:
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForumPost'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    CreateForumPostRequest:
+      type: object
+      required:
+        - title
+        - content
+        - category
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    ForumPostCreateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        post:
+          $ref: '#/components/schemas/ForumPost'
+
+    UpdateForumPostRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        is_locked:
+          type: boolean
+
+    ForumPostUpdateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        post:
+          $ref: '#/components/schemas/ForumPost'
+
+    ForumPostDeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    ForumPostDetailsResponse:
+      type: object
+      properties:
+        post:
+          $ref: '#/components/schemas/ForumPost'
+
+    ForumReply:
+      type: object
+      properties:
+        id:
+          type: integer
+        content:
+          type: string
+        post_id:
+          type: integer
+        user:
+          $ref: '../models/user.yaml#/components/schemas/User'
+        parent_id:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ForumReplyListResponse:
+      type: object
+      properties:
+        replies:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForumReply'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    CreateForumReplyRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+        parent_id:
+          type: integer
+          nullable: true
+
+    ForumReplyCreateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        reply:
+          $ref: '#/components/schemas/ForumReply'
