@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Verilog OJ Forum API
-  description: Verilog在线判题系统论坛管理API
+  title: Verilog OJ Problem API
+  description: Verilog在线判题系统题目管理API
   version: 1.0.0
   contact:
     name: API Support
@@ -21,11 +21,11 @@ components:
   $ref: './models/common.yaml#/components'
 
 paths:
-  /forum/posts:
+  /problems:
     get:
       tags:
-        - 论坛管理
-      summary: 获取帖子列表
+        - 题目管理
+      summary: 获取题目列表
       parameters:
         - name: page
           in: query
@@ -37,6 +37,11 @@ paths:
           schema:
             type: integer
             default: 20
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [Easy, Medium, Hard]
         - name: category
           in: query
           schema:
@@ -47,13 +52,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: './models/forum.yaml#/components/schemas/ForumPostListResponse'
+                $ref: './models/problem.yaml#/components/schemas/ProblemListResponse'
 
     post:
       tags:
-        - 论坛管理
-      summary: 创建帖子
-      description: 所有认证用户均可发帖
+        - 题目管理
+      summary: 创建题目
+      description: 需要教师或管理员权限
       security:
         - BearerAuth: []
       requestBody:
@@ -61,32 +66,32 @@ paths:
         content:
           application/json:
             schema:
-              $ref: './models/forum.yaml#/components/schemas/CreateForumPostRequest'
+              $ref: './models/problem.yaml#/components/schemas/ProblemCreateRequest'
       responses:
         '201':
           description: 创建成功
           content:
             application/json:
               schema:
-                $ref: './models/forum.yaml#/components/schemas/ForumPostCreateResponse'
+                $ref: './models/problem.yaml#/components/schemas/ProblemCreateResponse'
         '400':
           description: 请求参数错误
           content:
             application/json:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
-        '401':
-          description: 需要认证
+        '403':
+          description: 需要教师或管理员权限
           content:
             application/json:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
 
-  /forum/posts/{id}:
+  /problems/{id}:
     get:
       tags:
-        - 论坛管理
-      summary: 获取帖子详情
+        - 题目管理
+      summary: 获取题目详情
       parameters:
         - name: id
           in: path
@@ -99,9 +104,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: './models/forum.yaml#/components/schemas/ForumPostDetailsResponse'
+                $ref: './models/problem.yaml#/components/schemas/ProblemDetailsResponse'
         '404':
-          description: 帖子不存在
+          description: 题目不存在
           content:
             application/json:
               schema:
@@ -109,9 +114,9 @@ paths:
 
     put:
       tags:
-        - 论坛管理
-      summary: 更新帖子
-      description: 帖子作者或管理员可更新，但只有管理员可修改锁定状态
+        - 题目管理
+      summary: 更新题目
+      description: 需要题目作者或管理员权限（教师只能修改自己创建的题目）
       security:
         - BearerAuth: []
       parameters:
@@ -125,16 +130,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: './models/forum.yaml#/components/schemas/UpdateForumPostRequest'
+              $ref: './models/problem.yaml#/components/schemas/ProblemUpdateRequest'
       responses:
         '200':
           description: 更新成功
           content:
             application/json:
               schema:
-                $ref: './models/forum.yaml#/components/schemas/ForumPostUpdateResponse'
+                $ref: './models/problem.yaml#/components/schemas/ProblemUpdateResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
         '403':
-          description: 无权限 - 需要帖子作者或管理员权限
+          description: 无权限 - 需要题目作者或管理员权限
           content:
             application/json:
               schema:
@@ -142,9 +153,9 @@ paths:
 
     delete:
       tags:
-        - 论坛管理
-      summary: 删除帖子
-      description: 帖子作者或管理员可删除
+        - 题目管理
+      summary: 删除题目
+      description: 需要题目作者或管理员权限（教师只能修改自己创建的题目）
       security:
         - BearerAuth: []
       parameters:
@@ -159,19 +170,72 @@ paths:
           content:
             application/json:
               schema:
-                $ref: './models/forum.yaml#/components/schemas/ForumPostDeleteResponse'
+                $ref: './models/problem.yaml#/components/schemas/ProblemDeleteResponse'
         '403':
-          description: 无权限 - 需要帖子作者或管理员权限
+          description: 无权限 - 需要题目作者或管理员权限
           content:
             application/json:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
 
-  /forum/posts/{id}/replies:
+  /problems/{id}/testcases:
     get:
       tags:
-        - 论坛管理
-      summary: 获取帖子回复列表
+        - 题目管理
+      summary: 获取题目测试用例
+      description: 普通用户只能查看样例测试用例，题目作者、教师和管理员可查看所有测试用例
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: './models/problem.yaml#/components/schemas/TestCaseListResponse'
+
+    post:
+      tags:
+        - 题目管理
+      summary: 添加测试用例
+      description: 需要题目作者或管理员权限（教师只能修改自己创建的题目）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './models/problem.yaml#/components/schemas/TestCaseRequest'
+      responses:
+        '201':
+          description: 添加成功
+          content:
+            application/json:
+              schema:
+                $ref: './models/problem.yaml#/components/schemas/TestCaseAddResponse'
+        '403':
+          description: 无权限 - 需要题目作者或管理员权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+
+  /problems/{id}/submissions:
+    get:
+      tags:
+        - 题目管理
+      summary: 获取题目提交记录
       parameters:
         - name: id
           in: path
@@ -194,37 +258,4 @@ paths:
           content:
             application/json:
               schema:
-                $ref: './models/forum.yaml#/components/schemas/ForumReplyListResponse'
-
-    post:
-      tags:
-        - 论坛管理
-      summary: 创建回复
-      description: 所有认证用户均可回复
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: './models/forum.yaml#/components/schemas/CreateForumReplyRequest'
-      responses:
-        '201':
-          description: 创建成功
-          content:
-            application/json:
-              schema:
-                $ref: './models/forum.yaml#/components/schemas/ForumReplyCreateResponse'
-        '401':
-          description: 需要认证
-          content:
-            application/json:
-              schema:
-                $ref: './models/common.yaml#/components/schemas/Error'
+                $ref: './models/submission.yaml#/components/schemas/SubmissionListResponse'
