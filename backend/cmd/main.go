@@ -47,6 +47,13 @@ func main() {
 	// 创建路由
 	r := gin.New()
 
+	// 添加现有Service到中间件上下文
+	r.Use(func(c *gin.Context) {
+		c.Set("problem_service", app.Services.ProblemService)
+		c.Set("forum_service", app.Services.ForumService)
+		c.Next()
+	})
+
 	// 添加中间件
 	r.Use(middleware.CORS())
 	r.Use(middleware.APILogger()) // 使用文件日志中间件
@@ -66,7 +73,7 @@ func main() {
 	{
 		// 管理端路由（需要管理员权限）
 		admin := v1.Group("/admin")
-		admin.Use(middleware.AuthRequired(), middleware.AdminOnly())
+		admin.Use(middleware.AuthRequired(), middleware.RequirePermission(middleware.PermManageSystem))
 		{
 			admin.GET("/whoami", app.Handlers.AdminHandler.WhoAmI)
 			admin.GET("/stats", app.Handlers.AdminHandler.Stats)
@@ -77,67 +84,190 @@ func main() {
 		{
 			users.POST("/register", app.Handlers.UserHandler.Register)
 			users.POST("/login", app.Handlers.UserHandler.Login)
-			users.GET("/profile", middleware.AuthRequired(), app.Handlers.UserHandler.GetProfile)
-			users.PUT("/profile", middleware.AuthRequired(), app.Handlers.UserHandler.UpdateProfile)
-			users.PUT("/password", middleware.AuthRequired(), app.Handlers.UserHandler.ChangePassword)
+			// 获取个人信息：需要 user.profile.read 权限
+			users.GET("/profile",
+				middleware.AuthRequired(),
+				middleware.RequirePermission(middleware.PermUserProfileRead),
+				app.Handlers.UserHandler.GetProfile)
+			// 更新个人信息：需要 user.profile.update 权限
+			users.PUT("/profile",
+				middleware.AuthRequired(),
+				middleware.RequirePermission(middleware.PermUserProfileUpdate),
+				app.Handlers.UserHandler.UpdateProfile)
+			// 修改密码：需要 user.password.change 权限
+			users.PUT("/password",
+				middleware.AuthRequired(),
+				middleware.RequirePermission(middleware.PermUserPasswordChange),
+				app.Handlers.UserHandler.ChangePassword)
 		}
 
 		// 题目相关路由
 		problems := v1.Group("/problems")
 		{
-			problems.GET("", app.Handlers.ProblemHandler.ListProblems)
-			problems.GET("/:id", app.Handlers.ProblemHandler.GetProblem)
-			// 创建题目只允许教师和管理员
-			problems.POST("", middleware.AuthRequired(), middleware.TeacherOrAdmin(), app.Handlers.ProblemHandler.CreateProblem)
-			// 更新和删除题目：允许作者、教师、管理员（权限检查在handler内）
-			problems.PUT("/:id", middleware.AuthRequired(), app.Handlers.ProblemHandler.UpdateProblem)
-			problems.DELETE("/:id", middleware.AuthRequired(), app.Handlers.ProblemHandler.DeleteProblem)
+			// 获取题目列表：需要 problem.list 权限
+			problems.GET("",
+				middleware.OptionalAuth(),
+				middleware.OptionalAuthPermission(middleware.PermProblemList),
+				app.Handlers.ProblemHandler.ListProblems)
+			// 获取题目详情：需要 problem.read 权限
+			problems.GET("/:id",
+				middleware.OptionalAuth(),
+				middleware.OptionalAuthPermission(middleware.PermProblemRead),
+				app.Handlers.ProblemHandler.GetProblem)
+			// 创建题目：需要 problem.create 权限
+			problems.POST("",
+				middleware.AuthRequired(),
+				middleware.RequirePermission(middleware.PermProblemCreate),
+				app.Handlers.ProblemHandler.CreateProblem)
+			// 更新题目：需要 problem.update.own 权限或管理员角色
+			problems.PUT("/:id",
+				middleware.AuthRequired(),
+				middleware.RequireOwnershipOrPermission(
+					middleware.PermProblemUpdateAll,
+					middleware.GetProblemOwner("id"),
+				),
+				app.Handlers.ProblemHandler.UpdateProblem)
+			// 删除题目：需要 problem.delete.own 权限或管理员角色
+			problems.DELETE("/:id",
+				middleware.AuthRequired(),
+				middleware.RequireOwnershipOrPermission(
+					middleware.PermProblemDeleteAll,
+					middleware.GetProblemOwner("id"),
+				),
+				app.Handlers.ProblemHandler.DeleteProblem)
 
 			// 测试用例相关路由
-			// 查看测试用例：支持可选认证（匿名用户看样例，认证用户根据权限看全部或样例）
-			problems.GET("/:id/testcases", middleware.OptionalAuth(), app.Handlers.ProblemHandler.GetTestCases)
-			// 添加测试用例：允许作者、教师、管理员（权限检查在handler内）
-			problems.POST("/:id/testcases", middleware.AuthRequired(), app.Handlers.ProblemHandler.AddTestCase)
+			// 查看测试用例：支持可选认证（用户看样例，教师和管理员看全部）
+			problems.GET("/:id/testcases",
+				middleware.OptionalAuth(),
+				app.Handlers.ProblemHandler.GetTestCases)
+			// 添加测试用例：需要 testcase.create 权限或管理员角色
+			problems.POST("/:id/testcases",
+				middleware.AuthRequired(),
+				middleware.RequireOwnershipOrPermission(
+					middleware.PermTestcaseCreate,
+					middleware.GetProblemOwner("id"),
+				),
+				app.Handlers.ProblemHandler.AddTestCase)
 
-			// 题目提交记录路由
-			problems.GET("/:id/submissions", app.Handlers.SubmissionHandler.GetProblemSubmissions)
+			// 题目提交记录：需要 submission.list 权限
+			problems.GET("/:id/submissions",
+				middleware.OptionalAuth(),
+				middleware.OptionalAuthPermission(middleware.PermSubmissionList),
+				app.Handlers.SubmissionHandler.GetProblemSubmissions)
 		}
 
 		// 提交相关路由
 		submissions := v1.Group("/submissions")
 		{
-			submissions.GET("", app.Handlers.SubmissionHandler.ListSubmissions)
-			submissions.GET("/:id", app.Handlers.SubmissionHandler.GetSubmission)
-			submissions.POST("", middleware.AuthRequired(), app.Handlers.SubmissionHandler.CreateSubmission)
-			submissions.DELETE("/:id", middleware.AuthRequired(), middleware.AdminOnly(), app.Handlers.SubmissionHandler.DeleteSubmission)
+			// 获取公开提交列表：支持可选认证，匿名用户看基础信息
+			submissions.GET("",
+				middleware.OptionalAuth(),
+				middleware.OptionalAuthPermission(middleware.PermSubmissionList),
+				app.Handlers.SubmissionHandler.ListSubmissions)
+			// 获取提交详情：需要 submission.read 权限，支持可选认证
+			submissions.GET("/:id",
+				middleware.OptionalAuth(),
+				middleware.OptionalAuthPermission(middleware.PermSubmissionRead),
+				app.Handlers.SubmissionHandler.GetSubmission)
+			// 创建提交：需要 submission.create 权限
+			submissions.POST("",
+				middleware.AuthRequired(),
+				middleware.RequirePermission(middleware.PermSubmissionCreate),
+				app.Handlers.SubmissionHandler.CreateSubmission)
+			// 删除提交：需要 submission.delete 权限（仅管理员）
+			submissions.DELETE("/:id",
+				middleware.AuthRequired(),
+				middleware.RequirePermission(middleware.PermSubmissionDelete),
+				app.Handlers.SubmissionHandler.DeleteSubmission)
 
-			// 用户提交记录
-			submissions.GET("/user", middleware.AuthRequired(), app.Handlers.SubmissionHandler.GetUserSubmissions)
-			// 提交统计
-			submissions.GET("/stats", middleware.AuthRequired(), app.Handlers.SubmissionHandler.GetSubmissionStats)
+			// 获取当前用户提交记录：需要 submission.list 权限
+			submissions.GET("/user",
+				middleware.AuthRequired(),
+				middleware.RequirePermission(middleware.PermSubmissionList),
+				app.Handlers.SubmissionHandler.GetUserSubmissions)
+			// 获取提交统计：需要 submission.read 权限
+			submissions.GET("/stats",
+				middleware.AuthRequired(),
+				middleware.RequirePermission(middleware.PermSubmissionRead),
+				app.Handlers.SubmissionHandler.GetSubmissionStats)
 		}
 
 		// 论坛相关路由
 		forum := v1.Group("/forum")
 		{
-			forum.GET("/posts", app.Handlers.ForumHandler.ListPosts)
-			forum.GET("/posts/:id", app.Handlers.ForumHandler.GetPost)
-			forum.POST("/posts", middleware.AuthRequired(), app.Handlers.ForumHandler.CreatePost)
-			forum.PUT("/posts/:id", middleware.AuthRequired(), app.Handlers.ForumHandler.UpdatePost)
-			forum.DELETE("/posts/:id", middleware.AuthRequired(), app.Handlers.ForumHandler.DeletePost)
+			// 获取帖子列表：支持可选认证，匿名用户可查看公开帖子
+			forum.GET("/posts",
+				middleware.OptionalAuth(),
+				middleware.OptionalAuthPermission(middleware.PermForumPostRead),
+				app.Handlers.ForumHandler.ListPosts)
+			// 获取帖子详情：需要 forum.post.read 权限，支持可选认证
+			forum.GET("/posts/:id",
+				middleware.OptionalAuth(),
+				middleware.OptionalAuthPermission(middleware.PermForumPostRead),
+				app.Handlers.ForumHandler.GetPost)
+			// 创建帖子：需要 forum.post.create 权限
+			forum.POST("/posts",
+				middleware.AuthRequired(),
+				middleware.RequirePermission(middleware.PermForumPostCreate),
+				app.Handlers.ForumHandler.CreatePost)
+			// 更新帖子：需要 forum.edit.own 权限或管理员角色
+			forum.PUT("/posts/:id",
+				middleware.AuthRequired(),
+				middleware.RequireOwnershipOrPermission(
+					middleware.PermForumEditAll,
+					middleware.GetForumPostOwner("id"),
+				),
+				app.Handlers.ForumHandler.UpdatePost)
+			// 删除帖子：需要 forum.edit.own 权限或管理员角色
+			forum.DELETE("/posts/:id",
+				middleware.AuthRequired(),
+				middleware.RequireOwnershipOrPermission(
+					middleware.PermForumDelete,
+					middleware.GetForumPostOwner("id"),
+				),
+				app.Handlers.ForumHandler.DeletePost)
 
-			forum.GET("/posts/:id/replies", app.Handlers.ForumHandler.ListReplies)
-			forum.POST("/posts/:id/replies", middleware.AuthRequired(), app.Handlers.ForumHandler.CreateReply)
+			// 获取帖子回复列表：支持可选认证，匿名用户可查看公开回复
+			forum.GET("/posts/:id/replies",
+				middleware.OptionalAuth(),
+				middleware.OptionalAuthPermission(middleware.PermForumReplyRead),
+				app.Handlers.ForumHandler.ListReplies)
+			// 创建回复：需要 forum.reply.create 权限
+			forum.POST("/posts/:id/replies",
+				middleware.AuthRequired(),
+				middleware.RequirePermission(middleware.PermForumReplyCreate),
+				app.Handlers.ForumHandler.CreateReply)
 		}
 
 		// 新闻相关路由
 		news := v1.Group("/news")
 		{
-			news.GET("", app.Handlers.NewsHandler.ListNews)
-			news.GET("/:id", app.Handlers.NewsHandler.GetNews)
-			news.POST("", middleware.AuthRequired(), middleware.AdminOnly(), app.Handlers.NewsHandler.CreateNews)
-			news.PUT("/:id", middleware.AuthRequired(), middleware.AdminOnly(), app.Handlers.NewsHandler.UpdateNews)
-			news.DELETE("/:id", middleware.AuthRequired(), middleware.AdminOnly(), app.Handlers.NewsHandler.DeleteNews)
+			// 获取新闻列表：需要 news.list 权限
+			news.GET("",
+				middleware.OptionalAuth(),
+				middleware.OptionalAuthPermission(middleware.PermNewsList),
+				app.Handlers.NewsHandler.ListNews)
+			// 获取新闻详情：需要 news.read 权限
+			news.GET("/:id",
+				middleware.OptionalAuth(),
+				middleware.OptionalAuthPermission(middleware.PermNewsRead),
+				app.Handlers.NewsHandler.GetNews)
+			// 创建新闻：需要 news.create 权限
+			news.POST("",
+				middleware.AuthRequired(),
+				middleware.RequirePermission(middleware.PermNewsCreate),
+				app.Handlers.NewsHandler.CreateNews)
+			// 更新新闻：需要 news.update 权限
+			news.PUT("/:id",
+				middleware.AuthRequired(),
+				middleware.RequirePermission(middleware.PermNewsUpdate),
+				app.Handlers.NewsHandler.UpdateNews)
+			// 删除新闻：需要 news.delete 权限
+			news.DELETE("/:id",
+				middleware.AuthRequired(),
+				middleware.RequirePermission(middleware.PermNewsDelete),
+				app.Handlers.NewsHandler.DeleteNews)
 		}
 	}
 
