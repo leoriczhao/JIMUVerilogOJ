@@ -26,6 +26,10 @@ paths:
       tags:
         - 论坛管理
       summary: 获取帖子列表
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [forum.post.read]
+      description: 需要帖子读取权限
       parameters:
         - name: page
           in: query
@@ -48,14 +52,21 @@ paths:
             application/json:
               schema:
                 $ref: './models/forum.yaml#/components/schemas/ForumPostListResponse'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     post:
       tags:
         - 论坛管理
       summary: 创建帖子
-      description: 所有认证用户均可发帖
       security:
         - BearerAuth: []
+      x-rbac-permissions: [forum.post.create]
+      description: 需要帖子创建权限
       requestBody:
         required: true
         content:
@@ -75,8 +86,8 @@ paths:
             application/json:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
-        '401':
-          description: 需要认证
+        '403':
+          description: 权限不足 - 需要 forum.post.create 权限
           content:
             application/json:
               schema:
@@ -87,6 +98,10 @@ paths:
       tags:
         - 论坛管理
       summary: 获取帖子详情
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [forum.post.read]
+      description: 需要帖子读取权限
       parameters:
         - name: id
           in: path
@@ -100,6 +115,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/forum.yaml#/components/schemas/ForumPostDetailsResponse'
+        '403':
+          description: 权限不足 - 需要 forum.post.read 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
         '404':
           description: 帖子不存在
           content:
@@ -111,9 +132,13 @@ paths:
       tags:
         - 论坛管理
       summary: 更新帖子
-      description: 帖子作者或管理员可更新，但只有管理员可修改锁定状态
       security:
         - BearerAuth: []
+      x-rbac-require:
+        permissions: [forum.edit.own]
+        roles: [admin, super_admin]
+        operator: "OR"
+      description: 需要帖子编辑权限（自己的帖子）或管理员权限
       parameters:
         - name: id
           in: path
@@ -134,7 +159,7 @@ paths:
               schema:
                 $ref: './models/forum.yaml#/components/schemas/ForumPostUpdateResponse'
         '403':
-          description: 无权限 - 需要帖子作者或管理员权限
+          description: 权限不足 - 需要 forum.edit.own 权限或管理员角色
           content:
             application/json:
               schema:
@@ -144,9 +169,13 @@ paths:
       tags:
         - 论坛管理
       summary: 删除帖子
-      description: 帖子作者或管理员可删除
       security:
         - BearerAuth: []
+      x-rbac-require:
+        permissions: [forum.edit.own]
+        roles: [admin, super_admin]
+        operator: "OR"
+      description: 需要帖子编辑权限（自己的帖子）或管理员权限
       parameters:
         - name: id
           in: path
@@ -161,7 +190,7 @@ paths:
               schema:
                 $ref: './models/forum.yaml#/components/schemas/ForumPostDeleteResponse'
         '403':
-          description: 无权限 - 需要帖子作者或管理员权限
+          description: 权限不足 - 需要 forum.edit.own 权限或管理员角色
           content:
             application/json:
               schema:
@@ -172,6 +201,10 @@ paths:
       tags:
         - 论坛管理
       summary: 获取帖子回复列表
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [forum.reply.read]
+      description: 需要回复读取权限
       parameters:
         - name: id
           in: path
@@ -195,14 +228,21 @@ paths:
             application/json:
               schema:
                 $ref: './models/forum.yaml#/components/schemas/ForumReplyListResponse'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     post:
       tags:
         - 论坛管理
       summary: 创建回复
-      description: 所有认证用户均可回复
       security:
         - BearerAuth: []
+      x-rbac-permissions: [forum.reply.create]
+      description: 需要回复创建权限
       parameters:
         - name: id
           in: path
@@ -222,8 +262,8 @@ paths:
             application/json:
               schema:
                 $ref: './models/forum.yaml#/components/schemas/ForumReplyCreateResponse'
-        '401':
-          description: 需要认证
+        '403':
+          description: 权限不足 - 需要 forum.reply.create 权限
           content:
             application/json:
               schema:

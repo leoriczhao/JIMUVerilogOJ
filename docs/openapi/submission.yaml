@@ -26,6 +26,10 @@ paths:
       tags:
         - 提交管理
       summary: 获取提交记录列表
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [submission.list]
+      description: 需要提交列表查看权限
       parameters:
         - name: page
           in: query
@@ -56,6 +60,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/submission.yaml#/components/schemas/SubmissionListResponse'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     post:
       tags:
@@ -63,6 +73,8 @@ paths:
       summary: 提交代码
       security:
         - BearerAuth: []
+      x-rbac-permissions: [submission.create]
+      description: 需要代码提交权限
       requestBody:
         required: true
         content:
@@ -82,12 +94,22 @@ paths:
             application/json:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
+        '403':
+          description: 权限不足 - 需要 submission.create 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /submissions/{id}:
     get:
       tags:
         - 提交管理
       summary: 获取提交详情
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [submission.read]
+      description: 需要提交读取权限
       parameters:
         - name: id
           in: path
@@ -101,6 +123,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/submission.yaml#/components/schemas/SubmissionDetailsResponse'
+        '403':
+          description: 权限不足 - 需要 submission.read 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
         '404':
           description: 提交记录不存在
           content:
@@ -112,9 +140,10 @@ paths:
       tags:
         - 提交管理
       summary: 删除提交
-      description: 仅管理员可删除提交记录
       security:
         - BearerAuth: []
+      x-rbac-permissions: [submission.delete]
+      description: 需要提交删除权限（仅管理员）
       parameters:
         - name: id
           in: path
@@ -129,7 +158,7 @@ paths:
               schema:
                 $ref: './models/submission.yaml#/components/schemas/SubmissionDeleteResponse'
         '403':
-          description: 需要管理员权限
+          description: 权限不足 - 需要 submission.delete 权限
           content:
             application/json:
               schema:
@@ -142,6 +171,8 @@ paths:
       summary: 获取用户提交记录
       security:
         - BearerAuth: []
+      x-rbac-permissions: [submission.list]
+      description: 需要提交列表查看权限（获取当前用户的提交记录）
       parameters:
         - name: page
           in: query
@@ -160,6 +191,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/submission.yaml#/components/schemas/SubmissionListResponse'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /submissions/stats:
     get:
@@ -168,6 +205,8 @@ paths:
       summary: 获取提交统计
       security:
         - BearerAuth: []
+      x-rbac-permissions: [submission.read]
+      description: 需要提交读取权限（获取统计信息）
       responses:
         '200':
           description: 获取成功
@@ -175,3 +214,9 @@ paths:
             application/json:
               schema:
                 $ref: './models/submission.yaml#/components/schemas/SubmissionStatsResponse'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
