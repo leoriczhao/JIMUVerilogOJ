@@ -20,6 +20,24 @@ servers:
 components:
   $ref: './models/common.yaml#/components'
 
+  # 补充特定于admin的schemas
+  schemas:
+    # 批量角色分配
+    BulkRoleAssignment:
+      type: object
+      properties:
+        user_ids:
+          type: array
+          items:
+            type: integer
+          description: 用户ID列表
+        role:
+          $ref: '#/components/schemas/UserRole'
+        reason:
+          type: string
+          description: 分配原因
+      required: [user_ids, role]
+
 paths:
   # 管理员身份验证
   /admin/whoami:
@@ -29,6 +47,8 @@ paths:
       summary: 当前管理员信息
       security:
         - BearerAuth: []
+      x-rbac-roles: [admin, super_admin]
+      description: 需要管理员角色
       responses:
         '200':
           description: OK
@@ -43,7 +63,7 @@ paths:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
         '403':
-          description: 无权限
+          description: 权限不足
           content:
             application/json:
               schema:
@@ -57,6 +77,8 @@ paths:
       summary: 系统统计信息
       security:
         - BearerAuth: []
+      x-rbac-permissions: [stats.admin]
+      description: 需要管理员统计权限
       responses:
         '200':
           description: OK
@@ -71,7 +93,7 @@ paths:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
         '403':
-          description: 无权限
+          description: 权限不足 - 需要 stats.admin 权限
           content:
             application/json:
               schema:
@@ -84,6 +106,7 @@ paths:
       summary: 管理面板数据
       security:
         - BearerAuth: []
+      x-rbac-permissions: [stats.admin]
       responses:
         '200':
           description: OK
@@ -91,6 +114,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/DashboardStats'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   # 用户管理
   /admin/users:
@@ -100,6 +129,8 @@ paths:
       summary: 获取用户列表
       security:
         - BearerAuth: []
+      x-rbac-permissions: [manage.users]
+      description: 需要用户管理权限
       parameters:
         - name: page
           in: query
@@ -132,6 +163,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/AdminUserList'
+        '403':
+          description: 权限不足 - 需要 manage.users 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     post:
       tags:
@@ -139,6 +176,8 @@ paths:
       summary: 创建用户
       security:
         - BearerAuth: []
+      x-rbac-permissions: [user.create]
+      description: 需要用户创建权限
       requestBody:
         required: true
         content:
@@ -152,6 +191,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/user.yaml#/components/schemas/User'
+        '403':
+          description: 权限不足 - 需要 user.create 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/users/{id}:
     get:
@@ -160,6 +205,8 @@ paths:
       summary: 获取用户详情
       security:
         - BearerAuth: []
+      x-rbac-permissions: [user.read]
+      description: 需要用户读取权限
       parameters:
         - name: id
           in: path
@@ -173,6 +220,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/AdminUserDetail'
+        '403':
+          description: 权限不足 - 需要 user.read 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     put:
       tags:
@@ -180,6 +233,8 @@ paths:
       summary: 更新用户信息
       security:
         - BearerAuth: []
+      x-rbac-permissions: [user.update]
+      description: 需要 user.update 权限
       parameters:
         - name: id
           in: path
@@ -195,6 +250,12 @@ paths:
       responses:
         '200':
           description: 更新成功
+        '403':
+          description: 权限不足 - 需要 user.update 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     delete:
       tags:
@@ -202,6 +263,8 @@ paths:
       summary: 删除用户
       security:
         - BearerAuth: []
+      x-rbac-permissions: [user.delete]
+      description: 需要 user.delete 权限
       parameters:
         - name: id
           in: path
@@ -211,7 +274,12 @@ paths:
       responses:
         '200':
           description: 删除成功
-
+        '403':
+          description: 权限不足 - 需要 user.delete 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/users/{id}/ban:
     post:
@@ -220,6 +288,8 @@ paths:
       summary: 封禁用户
       security:
         - BearerAuth: []
+      x-rbac-permissions: [user.ban]
+      description: 需要 user.ban 权限
       parameters:
         - name: id
           in: path
@@ -235,6 +305,12 @@ paths:
       responses:
         '200':
           description: 封禁成功
+        '403':
+          description: 权限不足 - 需要 user.ban 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/users/{id}/unban:
     post:
@@ -243,6 +319,8 @@ paths:
       summary: 解封用户
       security:
         - BearerAuth: []
+      x-rbac-permissions: [user.unban]
+      description: 需要 user.unban 权限
       parameters:
         - name: id
           in: path
@@ -252,6 +330,201 @@ paths:
       responses:
         '200':
           description: 解封成功
+        '403':
+          description: 权限不足 - 需要 user.unban 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+
+  /admin/users/{id}/role:
+    put:
+      tags:
+        - 用户管理
+      summary: 更新用户角色
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [manage.roles]
+      description: 需要角色管理权限
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: 用户ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  $ref: '#/components/schemas/UserRole'
+                reason:
+                  type: string
+                  description: 角色变更原因
+              required: [role]
+              example:
+                role: "teacher"
+                reason: "升级为教师权限"
+      responses:
+        '200':
+          description: 角色更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '403':
+          description: 权限不足 - 需要 manage.roles 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+        '404':
+          description: 用户不存在
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+
+  /admin/users/roles/bulk:
+    post:
+      tags:
+        - 用户管理
+      summary: 批量分配角色
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [manage.roles]
+      description: 需要角色管理权限
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkRoleAssignment'
+      responses:
+        '200':
+          description: 批量分配成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success_count:
+                    type: integer
+                    description: 成功分配数量
+                  failed_count:
+                    type: integer
+                    description: 失败分配数量
+                  failed_users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        user_id:
+                          type: integer
+                        error:
+                          type: string
+        '403':
+          description: 权限不足 - 需要 manage.roles 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+
+  /admin/roles:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取角色列表
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [manage.roles]
+      description: 需要角色管理权限
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/RoleInfo'
+        '403':
+          description: 权限不足 - 需要 manage.roles 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+
+  /admin/roles/stats:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取角色统计信息
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [stats.read]
+      description: 需要统计读取权限
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_users:
+                    type: integer
+                    description: 总用户数
+                  role_stats:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RoleStats'
+                  updated_at:
+                    type: string
+                    format: date-time
+                    description: 统计更新时间
+        '403':
+          description: 权限不足 - 需要 stats.read 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+
+  /admin/roles/{role}/permissions:
+    get:
+      tags:
+        - 用户管理
+      summary: 获取角色权限映射
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [manage.roles]
+      description: 需要角色管理权限
+      parameters:
+        - name: role
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserRole'
+      responses:
+        '200':
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RolePermissionMapping'
+        '403':
+          description: 权限不足 - 需要 manage.roles 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   # 提交管理
   /admin/submissions:
@@ -261,6 +534,8 @@ paths:
       summary: 获取提交记录列表
       security:
         - BearerAuth: []
+      x-rbac-permissions: [submission.read]
+      description: 需要提交读取权限
       parameters:
         - name: page
           in: query
@@ -301,6 +576,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/AdminSubmissionList'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/submissions/{id}:
     get:
@@ -309,6 +590,8 @@ paths:
       summary: 获取提交详情
       security:
         - BearerAuth: []
+      x-rbac-permissions: [submission.read]
+      description: 需要提交读取权限
       parameters:
         - name: id
           in: path
@@ -322,6 +605,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/AdminSubmissionDetail'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     delete:
       tags:
@@ -329,6 +618,8 @@ paths:
       summary: 删除提交记录
       security:
         - BearerAuth: []
+      x-rbac-permissions: [submission.delete]
+      description: 需要提交删除权限
       parameters:
         - name: id
           in: path
@@ -338,7 +629,12 @@ paths:
       responses:
         '200':
           description: 删除成功
-
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/submissions/{id}/rejudge:
     post:
@@ -347,6 +643,8 @@ paths:
       summary: 重新判题
       security:
         - BearerAuth: []
+      x-rbac-permissions: [submission.rejudge]
+      description: 需要重新判题权限
       parameters:
         - name: id
           in: path
@@ -356,6 +654,12 @@ paths:
       responses:
         '200':
           description: 重新判题已启动
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   # 题目管理
   /admin/problems:
@@ -365,6 +669,8 @@ paths:
       summary: 获取题目列表
       security:
         - BearerAuth: []
+      x-rbac-permissions: [problem.read]
+      description: 需要题目读取权限
       parameters:
         - name: page
           in: query
@@ -397,6 +703,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/AdminProblemList'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     post:
       tags:
@@ -404,6 +716,8 @@ paths:
       summary: 创建题目
       security:
         - BearerAuth: []
+      x-rbac-permissions: [problem.create]
+      description: 需要题目创建权限
       requestBody:
         required: true
         content:
@@ -413,6 +727,12 @@ paths:
       responses:
         '201':
           description: 创建成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/problems/{id}:
     get:
@@ -421,6 +741,8 @@ paths:
       summary: 获取题目详情
       security:
         - BearerAuth: []
+      x-rbac-permissions: [problem.read]
+      description: 需要题目读取权限
       parameters:
         - name: id
           in: path
@@ -434,6 +756,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/AdminProblemDetail'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     put:
       tags:
@@ -441,6 +769,11 @@ paths:
       summary: 更新题目
       security:
         - BearerAuth: []
+      x-rbac-require:
+        permissions: [problem.update.own]
+        roles: [admin, super_admin]
+        operator: "OR"
+      description: 需要题目更新权限（自己的题目）或管理员权限
       parameters:
         - name: id
           in: path
@@ -456,6 +789,12 @@ paths:
       responses:
         '200':
           description: 更新成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     delete:
       tags:
@@ -463,6 +802,11 @@ paths:
       summary: 删除题目
       security:
         - BearerAuth: []
+      x-rbac-require:
+        permissions: [problem.delete.own]
+        roles: [admin, super_admin]
+        operator: "OR"
+      description: 需要题目删除权限（自己的题目）或管理员权限
       parameters:
         - name: id
           in: path
@@ -472,7 +816,12 @@ paths:
       responses:
         '200':
           description: 删除成功
-
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/problems/{id}/publish:
     post:
@@ -481,6 +830,8 @@ paths:
       summary: 发布题目
       security:
         - BearerAuth: []
+      x-rbac-permissions: [problem.publish]
+      description: 需要题目发布权限
       parameters:
         - name: id
           in: path
@@ -490,14 +841,22 @@ paths:
       responses:
         '200':
           description: 发布成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
-  /admin/problems/{id}/unpublish:
+  /admin/problems/{id}/archive:
     post:
       tags:
         - 题目管理
-      summary: 取消发布题目
+      summary: 归档题目
       security:
         - BearerAuth: []
+      x-rbac-permissions: [problem.archive]
+      description: 需要题目归档权限
       parameters:
         - name: id
           in: path
@@ -506,7 +865,13 @@ paths:
             type: integer
       responses:
         '200':
-          description: 取消发布成功
+          description: 归档成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   # 新闻管理
   /admin/news:
@@ -516,6 +881,8 @@ paths:
       summary: 获取新闻列表
       security:
         - BearerAuth: []
+      x-rbac-permissions: [news.read]
+      description: 需要新闻读取权限
       parameters:
         - name: page
           in: query
@@ -539,6 +906,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/AdminNewsList'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     post:
       tags:
@@ -546,6 +919,8 @@ paths:
       summary: 创建新闻
       security:
         - BearerAuth: []
+      x-rbac-permissions: [news.create]
+      description: 需要新闻创建权限
       requestBody:
         required: true
         content:
@@ -555,6 +930,12 @@ paths:
       responses:
         '201':
           description: 创建成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/news/{id}:
     get:
@@ -563,6 +944,8 @@ paths:
       summary: 获取新闻详情
       security:
         - BearerAuth: []
+      x-rbac-permissions: [news.read]
+      description: 需要新闻读取权限
       parameters:
         - name: id
           in: path
@@ -576,6 +959,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/AdminNewsDetail'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     put:
       tags:
@@ -583,6 +972,8 @@ paths:
       summary: 更新新闻
       security:
         - BearerAuth: []
+      x-rbac-permissions: [news.update]
+      description: 需要新闻更新权限
       parameters:
         - name: id
           in: path
@@ -598,6 +989,12 @@ paths:
       responses:
         '200':
           description: 更新成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     delete:
       tags:
@@ -605,6 +1002,8 @@ paths:
       summary: 删除新闻
       security:
         - BearerAuth: []
+      x-rbac-permissions: [news.delete]
+      description: 需要新闻删除权限
       parameters:
         - name: id
           in: path
@@ -614,6 +1013,62 @@ paths:
       responses:
         '200':
           description: 删除成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+
+  /admin/news/{id}/publish:
+    post:
+      tags:
+        - 新闻管理
+      summary: 发布新闻
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [news.publish]
+      description: 需要新闻发布权限
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 发布成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+
+  /admin/news/{id}/archive:
+    post:
+      tags:
+        - 新闻管理
+      summary: 归档新闻
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [news.archive]
+      description: 需要新闻归档权限
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 归档成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   # 论坛管理
   /admin/forum/posts:
@@ -623,6 +1078,8 @@ paths:
       summary: 获取帖子列表
       security:
         - BearerAuth: []
+      x-rbac-permissions: [forum.moderate]
+      description: 需要论坛管理权限
       parameters:
         - name: page
           in: query
@@ -650,6 +1107,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/AdminForumPostList'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/forum/posts/{id}:
     get:
@@ -658,6 +1121,8 @@ paths:
       summary: 获取帖子详情
       security:
         - BearerAuth: []
+      x-rbac-permissions: [forum.moderate]
+      description: 需要论坛管理权限
       parameters:
         - name: id
           in: path
@@ -671,6 +1136,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/AdminForumPostDetail'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     delete:
       tags:
@@ -678,6 +1149,8 @@ paths:
       summary: 删除帖子
       security:
         - BearerAuth: []
+      x-rbac-permissions: [forum.delete]
+      description: 需要论坛删除权限
       parameters:
         - name: id
           in: path
@@ -687,6 +1160,12 @@ paths:
       responses:
         '200':
           description: 删除成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/forum/posts/{id}/lock:
     post:
@@ -695,6 +1174,8 @@ paths:
       summary: 锁定帖子
       security:
         - BearerAuth: []
+      x-rbac-permissions: [forum.post.lock]
+      description: 需要帖子锁定权限
       parameters:
         - name: id
           in: path
@@ -704,6 +1185,12 @@ paths:
       responses:
         '200':
           description: 锁定成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/forum/posts/{id}/unlock:
     post:
@@ -712,6 +1199,8 @@ paths:
       summary: 解锁帖子
       security:
         - BearerAuth: []
+      x-rbac-permissions: [forum.post.lock]
+      description: 需要帖子锁定权限
       parameters:
         - name: id
           in: path
@@ -721,6 +1210,12 @@ paths:
       responses:
         '200':
           description: 解锁成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/forum/posts/{id}/sticky:
     post:
@@ -729,6 +1224,8 @@ paths:
       summary: 置顶帖子
       security:
         - BearerAuth: []
+      x-rbac-permissions: [forum.post.sticky]
+      description: 需要帖子置顶权限
       parameters:
         - name: id
           in: path
@@ -738,6 +1235,12 @@ paths:
       responses:
         '200':
           description: 置顶成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/forum/posts/{id}/unsticky:
     post:
@@ -746,6 +1249,8 @@ paths:
       summary: 取消置顶帖子
       security:
         - BearerAuth: []
+      x-rbac-permissions: [forum.post.sticky]
+      description: 需要帖子置顶权限
       parameters:
         - name: id
           in: path
@@ -755,6 +1260,12 @@ paths:
       responses:
         '200':
           description: 取消置顶成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   # 系统配置
   /admin/settings:
@@ -764,6 +1275,8 @@ paths:
       summary: 获取系统配置
       security:
         - BearerAuth: []
+      x-rbac-permissions: [manage.config]
+      description: 需要系统配置权限
       responses:
         '200':
           description: 获取成功
@@ -771,6 +1284,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/SystemSettings'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     put:
       tags:
@@ -778,6 +1297,8 @@ paths:
       summary: 更新系统配置
       security:
         - BearerAuth: []
+      x-rbac-permissions: [manage.config]
+      description: 需要系统配置权限
       requestBody:
         required: true
         content:
@@ -787,6 +1308,12 @@ paths:
       responses:
         '200':
           description: 更新成功
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   # 判题服务管理
   /admin/judges:
@@ -796,6 +1323,8 @@ paths:
       summary: 获取判题服务列表
       security:
         - BearerAuth: []
+      x-rbac-permissions: [manage.system]
+      description: 需要系统管理权限
       responses:
         '200':
           description: 获取成功
@@ -803,6 +1332,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/JudgeServiceList'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /admin/judges/{id}:
     get:
@@ -811,6 +1346,8 @@ paths:
       summary: 获取判题服务详情
       security:
         - BearerAuth: []
+      x-rbac-permissions: [manage.system]
+      description: 需要系统管理权限
       parameters:
         - name: id
           in: path
@@ -824,3 +1361,9 @@ paths:
             application/json:
               schema:
                 $ref: './models/admin.yaml#/components/schemas/JudgeServiceDetail'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'

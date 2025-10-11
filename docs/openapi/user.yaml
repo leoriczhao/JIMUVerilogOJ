@@ -78,6 +78,7 @@ paths:
       summary: 获取个人信息
       security:
         - BearerAuth: []
+      x-rbac-permissions: [user.profile.read]
       responses:
         '200':
           description: 获取成功
@@ -91,6 +92,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     put:
       tags:
@@ -98,6 +105,7 @@ paths:
       summary: 更新个人信息
       security:
         - BearerAuth: []
+      x-rbac-permissions: [user.profile.update]
       requestBody:
         required: true
         content:
@@ -117,6 +125,18 @@ paths:
             application/json:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
+        '401':
+          description: 未授权
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
   /users/password:
     put:
@@ -125,6 +145,7 @@ paths:
       summary: 修改密码
       security:
         - BearerAuth: []
+      x-rbac-permissions: [user.password.change]
       requestBody:
         required: true
         content:
@@ -149,6 +170,12 @@ paths:
                 $ref: './models/common.yaml#/components/schemas/Error'
         '401':
           description: 原密码错误
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+        '403':
+          description: 权限不足
           content:
             application/json:
               schema:
