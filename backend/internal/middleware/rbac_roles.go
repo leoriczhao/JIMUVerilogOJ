@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"strings"
 	"sync"
@@ -10,6 +11,7 @@ import (
 type RBAC struct {
 	rolePermissions map[string][]string
 	userCache       map[string][]string
+	userCacheKeys   map[uint][]string  // 记录用户ID对应的缓存键
 	cacheMutex      sync.RWMutex
 }
 
@@ -17,6 +19,7 @@ type RBAC struct {
 var DefaultRBAC = &RBAC{
 	rolePermissions: make(map[string][]string),
 	userCache:       make(map[string][]string),
+	userCacheKeys:   make(map[uint][]string),
 }
 
 // 初始化角色权限映射
@@ -46,8 +49,8 @@ func (rbac *RBAC) GetRolePermissions(role string) []string {
 
 // GetUserPermissions 获取用户的所有权限
 func (rbac *RBAC) GetUserPermissions(userID uint, role string) []string {
-	// 使用用户ID和角色名组成唯一缓存键，确保不同角色不会相互污染
-	cacheKey := fmt.Sprintf("%d|%s", userID, role)
+	// 使用基于哈希的缓存键，避免键冲突
+	cacheKey := generateCacheKey(userID, role)
 
 	// 检查缓存
 	rbac.cacheMutex.RLock()
@@ -60,15 +63,29 @@ func (rbac *RBAC) GetUserPermissions(userID uint, role string) []string {
 	// 获取角色权限
 	permissions := rbac.GetRolePermissions(role)
 
-	// 缓存结果
+	// 缓存结果并记录键
 	rbac.cacheMutex.Lock()
 	rbac.userCache[cacheKey] = permissions
+
+	// 记录用户ID对应的缓存键，便于后续清理
+	if rbac.userCacheKeys[userID] == nil {
+		rbac.userCacheKeys[userID] = []string{}
+	}
+	rbac.userCacheKeys[userID] = append(rbac.userCacheKeys[userID], cacheKey)
+
 	rbac.cacheMutex.Unlock()
 
 	return permissions
 }
 
-// RoleHash 计算角色的简单哈希值
+// generateCacheKey 生成基于哈希的缓存键，避免键冲突
+func generateCacheKey(userID uint, role string) string {
+	data := fmt.Sprintf("%d|%s|%s", userID, role, "rbac_v1")
+	hash := sha256.Sum256([]byte(data))
+	return fmt.Sprintf("%x", hash[:16]) // 使用前16字节，既保证唯一性又控制键长度
+}
+
+// RoleHash 计算角色的简单哈希值（保留用于向后兼容）
 func RoleHash(role string) int {
 	hash := 0
 	for _, c := range role {
@@ -110,17 +127,6 @@ func (rbac *RBAC) matchPermission(userPerm, requiredPerm string) bool {
 		}
 	}
 
-	// 操作级通配符匹配
-	if strings.HasSuffix(userPerm, ".*") && strings.Contains(requiredPerm, ".") {
-		parts := strings.Split(requiredPerm, ".")
-		if len(parts) >= 2 {
-			resourceWildcard := parts[0] + ".*"
-			if userPerm == resourceWildcard {
-				return true
-			}
-		}
-	}
-
 	return false
 }
 
@@ -149,22 +155,26 @@ func (rbac *RBAC) ClearUserCache(userID uint) {
 	rbac.cacheMutex.Lock()
 	defer rbac.cacheMutex.Unlock()
 
-	prefix := fmt.Sprintf("%d|", userID)
-	keysToDelete := make([]string, 0)
-	for key := range rbac.userCache {
-		if strings.HasPrefix(key, prefix) {
-			keysToDelete = append(keysToDelete, key)
-		}
+	// 获取用户的所有缓存键
+	cacheKeys, exists := rbac.userCacheKeys[userID]
+	if !exists {
+		return // 没有缓存，无需清理
 	}
-	for _, key := range keysToDelete {
-		delete(rbac.userCache, key)
+
+	// 删除所有相关的缓存条目
+	for _, cacheKey := range cacheKeys {
+		delete(rbac.userCache, cacheKey)
 	}
+
+	// 清除键记录
+	delete(rbac.userCacheKeys, userID)
 }
 
 // ClearAllCache 清除所有权限缓存
 func (rbac *RBAC) ClearAllCache() {
 	rbac.cacheMutex.Lock()
 	rbac.userCache = make(map[string][]string)
+	rbac.userCacheKeys = make(map[uint][]string)
 	rbac.cacheMutex.Unlock()
 }
 

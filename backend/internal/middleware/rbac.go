@@ -347,21 +347,34 @@ func GetProblemOwner(problemIDParam string) ResourceOwnershipFunc {
 		// 从gin上下文中获取ProblemService
 		service, exists := c.Get("problem_service")
 		if !exists {
-			_ = c.Error(fmt.Errorf("problem service not available"))
+			// 记录错误但不阻止请求，允许权限检查继续
+			_ = c.Error(fmt.Errorf("problem service not available in context"))
 			return 0, false
 		}
 
 		problemService, ok := service.(*services.ProblemService)
 		if !ok {
-			_ = c.Error(fmt.Errorf("invalid problem service type"))
+			_ = c.Error(fmt.Errorf("invalid problem service type in context"))
 			return 0, false
 		}
 
-		// 通过现有Service查询题目所有者
+		// 通过现有Service查询题目所有者，添加panic恢复
+		defer func() {
+			if r := recover(); r != nil {
+				_ = c.Error(fmt.Errorf("panic in problem service: %v", r))
+			}
+		}()
+
 		problem, err := problemService.GetProblem(uint(problemID))
 		if err != nil {
 			// 记录错误但不阻止请求
-			_ = c.Error(fmt.Errorf("failed to query problem: %w", err))
+			_ = c.Error(fmt.Errorf("failed to query problem %d: %w", problemID, err))
+			return 0, false
+		}
+
+		// 验证题目和作者ID的有效性
+		if problem == nil || problem.AuthorID == 0 {
+			_ = c.Error(fmt.Errorf("invalid problem data for problem %d", problemID))
 			return 0, false
 		}
 
@@ -385,21 +398,34 @@ func GetForumPostOwner(postIDParam string) ResourceOwnershipFunc {
 		// 从gin上下文中获取ForumService
 		service, exists := c.Get("forum_service")
 		if !exists {
-			_ = c.Error(fmt.Errorf("forum service not available"))
+			// 记录错误但不阻止请求，允许权限检查继续
+			_ = c.Error(fmt.Errorf("forum service not available in context"))
 			return 0, false
 		}
 
 		forumService, ok := service.(*services.ForumService)
 		if !ok {
-			_ = c.Error(fmt.Errorf("invalid forum service type"))
+			_ = c.Error(fmt.Errorf("invalid forum service type in context"))
 			return 0, false
 		}
 
-		// 通过现有Service查询帖子所有者
+		// 通过现有Service查询帖子所有者，添加panic恢复
+		defer func() {
+			if r := recover(); r != nil {
+				_ = c.Error(fmt.Errorf("panic in forum service: %v", r))
+			}
+		}()
+
 		post, err := forumService.GetPost(uint(postID))
 		if err != nil {
 			// 记录错误但不阻止请求
-			_ = c.Error(fmt.Errorf("failed to query forum post: %w", err))
+			_ = c.Error(fmt.Errorf("failed to query forum post %d: %w", postID, err))
+			return 0, false
+		}
+
+		// 验证帖子和作者ID的有效性
+		if post == nil || post.AuthorID == 0 {
+			_ = c.Error(fmt.Errorf("invalid forum post data for post %d", postID))
 			return 0, false
 		}
 
