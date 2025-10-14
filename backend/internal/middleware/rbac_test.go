@@ -416,6 +416,71 @@ func TestRBAC_CacheIsolationBetweenRoles(t *testing.T) {
 	}
 }
 
+// 测试角色变更时缓存隔离
+func TestRBAC_RoleCacheIsolation(t *testing.T) {
+	userID := uint(1)
+	studentRole := "student"
+	teacherRole := "teacher"
+
+	// 清除所有缓存
+	DefaultRBAC.ClearAllCache()
+
+	// 获取学生权限
+	studentPerms := DefaultRBAC.GetUserPermissions(userID, studentRole)
+
+	// 获取教师权限（不同角色）
+	teacherPerms := DefaultRBAC.GetUserPermissions(userID, teacherRole)
+
+	// 验证不同角色的权限不同
+	if len(studentPerms) == len(teacherPerms) {
+		// 学生和教师权限应该不同
+		isDifferent := false
+		for _, sp := range studentPerms {
+			found := false
+			for _, tp := range teacherPerms {
+				if sp == tp {
+					found = true
+					break
+				}
+			}
+			if !found {
+				isDifferent = true
+				break
+			}
+		}
+		if !isDifferent {
+			t.Error("Student and teacher permissions should be different")
+		}
+	}
+
+	// 验证缓存中有2个条目（不同角色）
+	cacheCount := 0
+	DefaultRBAC.cacheMutex.RLock()
+	for _ = range DefaultRBAC.userCache {
+		cacheCount++
+	}
+	DefaultRBAC.cacheMutex.RUnlock()
+
+	if cacheCount != 2 {
+		t.Errorf("Expected 2 cache entries for different roles, got %d", cacheCount)
+	}
+
+	// 清除特定用户的缓存
+	DefaultRBAC.ClearUserCache(userID)
+
+	// 验证缓存被清除
+	afterClearCount := 0
+	DefaultRBAC.cacheMutex.RLock()
+	for _ = range DefaultRBAC.userCache {
+		afterClearCount++
+	}
+	DefaultRBAC.cacheMutex.RUnlock()
+
+	if afterClearCount != 0 {
+		t.Errorf("Expected user cache to be cleared, but found %d items", afterClearCount)
+	}
+}
+
 // 基准测试
 func BenchmarkRBAC_HasPermission(b *testing.B) {
 	userID := uint(1)
