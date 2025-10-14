@@ -49,7 +49,7 @@ HTTP请求 → 认证中间件 → RBAC中间件 → 权限检查 → 业务处�
 ```go
 type RBAC struct {
     rolePermissions map[string][]string  // 角色权限映射
-    userCache       map[uint][]string    // 用户权限缓存
+    userCache       map[string][]string  // 用户权限缓存（按用户+角色隔离）
     cacheMutex      sync.RWMutex         // 读写锁
 }
 ```
@@ -125,9 +125,9 @@ func matchPermission(userPerm, requiredPerm string) bool {
 
 ### 1. 缓存结构
 ```
-用户缓存: map[uint][]string
-├── userID_hash → [权限列表]
-└── 支持并发读写
+用户缓存: map[string][]string
+├── key: "<userID>|<role>" → [权限列表]
+└── 支持并发读写（按用户和角色隔离）
 
 角色缓存: map[string][]string
 ├── role_name → [权限列表]

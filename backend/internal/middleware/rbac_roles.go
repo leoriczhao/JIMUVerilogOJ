@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"encoding/binary"
+	"fmt"
 	"strings"
 	"sync"
 )
@@ -9,14 +9,14 @@ import (
 // RBAC 角色权限管理
 type RBAC struct {
 	rolePermissions map[string][]string
-	userCache       map[uint][]string
+	userCache       map[string][]string
 	cacheMutex      sync.RWMutex
 }
 
 // 全局RBAC实例
 var DefaultRBAC = &RBAC{
 	rolePermissions: make(map[string][]string),
-	userCache:       make(map[uint][]string),
+	userCache:       make(map[string][]string),
 }
 
 // 初始化角色权限映射
@@ -46,23 +46,8 @@ func (rbac *RBAC) GetRolePermissions(role string) []string {
 
 // GetUserPermissions 获取用户的所有权限
 func (rbac *RBAC) GetUserPermissions(userID uint, role string) []string {
-	// 使用更安全的哈希算法生成缓存键
-	// 组合用户ID和角色生成唯一键
-	key := make([]byte, 12) // 8 bytes for userID + 4 bytes for role hash
-
-	// 将userID写入前8字节
-	binary.BigEndian.PutUint64(key[:8], uint64(userID))
-
-	// 对角色名进行简单哈希写入后4字节
-	var roleHash uint32 = 2166136261
-	for _, c := range role {
-		roleHash ^= uint32(c)
-		roleHash *= 16777619
-	}
-	binary.BigEndian.PutUint32(key[8:12], roleHash)
-
-	// 使用前8位作为缓存键，减少冲突概率
-	cacheKey := uint(binary.BigEndian.Uint64(key[:8]))
+	// 使用用户ID和角色名组成唯一缓存键，确保不同角色不会相互污染
+	cacheKey := fmt.Sprintf("%d|%s", userID, role)
 
 	// 检查缓存
 	rbac.cacheMutex.RLock()
@@ -164,27 +149,13 @@ func (rbac *RBAC) ClearUserCache(userID uint) {
 	rbac.cacheMutex.Lock()
 	defer rbac.cacheMutex.Unlock()
 
-	// 由于新的哈希算法，我们需要重新计算可能的缓存键
-	// 遍历所有可能的角色，生成对应的缓存键并删除
-	roles := []string{"student", "teacher", "admin", "super_admin"}
-	keysToDelete := []uint{}
-
-	for _, role := range roles {
-		// 生成与GetUserPermissions相同的缓存键
-		key := make([]byte, 12)
-		binary.BigEndian.PutUint64(key[:8], uint64(userID))
-
-		var roleHash uint32 = 2166136261
-		for _, c := range role {
-			roleHash ^= uint32(c)
-			roleHash *= 16777619
+	prefix := fmt.Sprintf("%d|", userID)
+	keysToDelete := make([]string, 0)
+	for key := range rbac.userCache {
+		if strings.HasPrefix(key, prefix) {
+			keysToDelete = append(keysToDelete, key)
 		}
-		binary.BigEndian.PutUint32(key[8:12], roleHash)
-
-		cacheKey := uint(binary.BigEndian.Uint64(key[:8]))
-		keysToDelete = append(keysToDelete, cacheKey)
 	}
-
 	for _, key := range keysToDelete {
 		delete(rbac.userCache, key)
 	}
@@ -193,7 +164,7 @@ func (rbac *RBAC) ClearUserCache(userID uint) {
 // ClearAllCache 清除所有权限缓存
 func (rbac *RBAC) ClearAllCache() {
 	rbac.cacheMutex.Lock()
-	rbac.userCache = make(map[uint][]string)
+	rbac.userCache = make(map[string][]string)
 	rbac.cacheMutex.Unlock()
 }
 

@@ -294,7 +294,7 @@ func TestRBAC_RolePermissionManagement(t *testing.T) {
 	// 创建临时RBAC实例
 	rbac := &RBAC{
 		rolePermissions: make(map[string][]string),
-		userCache:       make(map[uint][]string),
+		userCache:       make(map[string][]string),
 	}
 
 	// 初始化基础角色
@@ -357,7 +357,7 @@ func TestRBAC_PermissionCache(t *testing.T) {
 	// 验证缓存中有数据
 	cacheCount := 0
 	DefaultRBAC.cacheMutex.RLock()
-	for _ = range DefaultRBAC.userCache {
+	for range DefaultRBAC.userCache {
 		cacheCount++
 	}
 	DefaultRBAC.cacheMutex.RUnlock()
@@ -380,13 +380,39 @@ func TestRBAC_PermissionCache(t *testing.T) {
 	// 验证缓存被完全清除
 	afterClearCount := 0
 	DefaultRBAC.cacheMutex.RLock()
-	for _ = range DefaultRBAC.userCache {
+	for range DefaultRBAC.userCache {
 		afterClearCount++
 	}
 	DefaultRBAC.cacheMutex.RUnlock()
 
 	if afterClearCount != 0 {
 		t.Errorf("Expected all cache to be cleared, but found %d items", afterClearCount)
+	}
+}
+
+// 验证不同角色的缓存隔离（防回归）
+func TestRBAC_CacheIsolationBetweenRoles(t *testing.T) {
+	userID := uint(42)
+
+	DefaultRBAC.ClearAllCache()
+
+	// 先以 admin 身份缓存权限
+	if !DefaultRBAC.HasPermission(userID, "admin", PermManageUsers) {
+		t.Fatalf("admin should have %s", PermManageUsers)
+	}
+
+	// 同一用户以 student 身份不应拥有管理员权限
+	if DefaultRBAC.HasPermission(userID, "student", PermManageUsers) {
+		t.Fatalf("student role should not inherit cached admin permissions")
+	}
+
+	// 反向：缓存 student 后，admin 仍应有权限
+	DefaultRBAC.ClearUserCache(userID)
+	if DefaultRBAC.HasPermission(userID, "student", PermUserProfileRead) == false {
+		t.Fatalf("student should have %s", PermUserProfileRead)
+	}
+	if !DefaultRBAC.HasPermission(userID, "admin", PermManageUsers) {
+		t.Fatalf("admin should still have %s after student cache", PermManageUsers)
 	}
 }
 
