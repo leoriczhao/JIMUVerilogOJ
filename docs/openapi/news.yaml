@@ -26,6 +26,10 @@ paths:
       tags:
         - 新闻管理
       summary: 获取新闻列表
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [news.list]
+      description: 需要新闻列表查看权限
       parameters:
         - name: page
           in: query
@@ -48,14 +52,21 @@ paths:
             application/json:
               schema:
                 $ref: './models/news.yaml#/components/schemas/NewsListResponse'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     post:
       tags:
         - 新闻管理
       summary: 创建新闻
-      description: 需要管理员权限
       security:
         - BearerAuth: []
+      x-rbac-permissions: [news.create]
+      description: 需要新闻创建权限
       requestBody:
         required: true
         content:
@@ -76,7 +87,7 @@ paths:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
         '403':
-          description: 需要管理员权限
+          description: 权限不足 - 需要 news.create 权限
           content:
             application/json:
               schema:
@@ -87,6 +98,10 @@ paths:
       tags:
         - 新闻管理
       summary: 获取新闻详情
+      security:
+        - BearerAuth: []
+      x-rbac-permissions: [news.read]
+      description: 需要新闻读取权限
       parameters:
         - name: id
           in: path
@@ -100,6 +115,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/news.yaml#/components/schemas/NewsDetailsResponse'
+        '403':
+          description: 权限不足 - 需要 news.read 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
         '404':
           description: 新闻不存在
           content:
@@ -113,6 +134,8 @@ paths:
       summary: 更新新闻
       security:
         - BearerAuth: []
+      x-rbac-permissions: [news.update]
+      description: 需要新闻更新权限
       parameters:
         - name: id
           in: path
@@ -132,6 +155,18 @@ paths:
             application/json:
               schema:
                 $ref: './models/news.yaml#/components/schemas/NewsUpdateResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+        '403':
+          description: 权限不足 - 需要 news.update 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
 
     delete:
       tags:
@@ -139,6 +174,8 @@ paths:
       summary: 删除新闻
       security:
         - BearerAuth: []
+      x-rbac-permissions: [news.delete]
+      description: 需要新闻删除权限
       parameters:
         - name: id
           in: path
@@ -152,3 +189,9 @@ paths:
             application/json:
               schema:
                 $ref: './models/news.yaml#/components/schemas/NewsDeleteResponse'
+        '403':
+          description: 权限不足 - 需要 news.delete 权限
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
