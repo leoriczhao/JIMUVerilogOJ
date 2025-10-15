@@ -10,8 +10,371 @@ components:
         code:
           type: integer
 
+    # 角色枚举定义
+    UserRole:
+      type: string
+      enum: [student, teacher, admin, super_admin]
+      description: 用户角色类型
+
+    # 角色详细信息
+    RoleInfo:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/UserRole'
+        name:
+          type: string
+          description: 角色显示名称
+        description:
+          type: string
+          description: 角色描述
+        level:
+          type: integer
+          description: 角色等级（数字越大权限越高）
+        is_active:
+          type: boolean
+          description: 角色是否启用
+      example:
+        role: "admin"
+        name: "管理员"
+        description: "系统管理员，拥有系统管理权限"
+        level: 3
+        is_active: true
+
+    # 用户基础信息（包含角色）
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        email:
+          type: string
+          format: email
+          description: 邮箱
+        role:
+          $ref: '#/components/schemas/UserRole'
+        status:
+          type: string
+          enum: [active, inactive]
+          description: 用户状态
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+      required: [id, username, email, role, status]
+
+    # 角色权限映射
+    RolePermissionMapping:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/UserRole'
+        role_info:
+          $ref: '#/components/schemas/RoleInfo'
+        permissions:
+          type: array
+          items:
+            type: string
+          description: 角色拥有的权限列表
+        permission_details:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              category:
+                type: string
+                description: 权限分类
+      required: [role, role_info, permissions]
+
+    # 角色统计信息
+    RoleStats:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/UserRole'
+        role_info:
+          $ref: '#/components/schemas/RoleInfo'
+        count:
+          type: integer
+          description: 该角色用户数量
+        percentage:
+          type: number
+          format: float
+          description: 该角色用户占比
+      example:
+        role: "student"
+        role_info:
+          role: "student"
+          name: "学生"
+          description: "学生用户，基础功能权限"
+          level: 1
+          is_active: true
+        count: 150
+        percentage: 75.0
+
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: JWT Token for authentication and authorization
+
+  # RBAC权限定义 - 与Go代码完全一致
+  x-rbac-permissions:
+    # ========== 用户相关权限 ==========
+    user.profile.read: "查看个人信息"
+    user.profile.update: "更新个人信息"
+    user.password.change: "修改密码"
+    user.avatar.upload: "上传头像"
+    user.create: "创建用户"
+    user.read: "查看用户信息"
+    user.update: "更新用户信息"
+    user.delete: "删除用户"
+    user.ban: "封禁用户"
+    user.unban: "解封用户"
+
+    # ========== 题目相关权限 ==========
+    problem.create: "创建题目"
+    problem.read: "查看题目"
+    problem.list: "题目列表查看"
+    problem.update.own: "更新自己的题目"
+    problem.update.all: "更新任意题目"
+    problem.delete.own: "删除自己的题目"
+    problem.delete.all: "删除任意题目"
+    problem.publish: "发布题目"
+    problem.archive: "归档题目"
+
+    # ========== 测试用例相关权限 ==========
+    testcase.read.sample: "查看样例测试用例"
+    testcase.read.own: "查看自己题目的测试用例"
+    testcase.read.all: "查看所有测试用例"
+    testcase.create: "创建测试用例"
+    testcase.update: "更新测试用例"
+    testcase.delete: "删除测试用例"
+
+    # ========== 提交相关权限 ==========
+    submission.create: "提交代码"
+    submission.read: "查看提交记录"
+    submission.list: "提交列表查看"
+    submission.manage: "管理提交记录"
+    submission.delete: "删除提交记录"
+    submission.rejudge: "重新判题"
+
+    # ========== 论坛相关权限 ==========
+    forum.post.create: "发帖"
+    forum.post.read: "查看帖子"
+    forum.reply.create: "回复"
+    forum.reply.read: "查看回复"
+    forum.edit.own: "编辑自己的帖子"
+    forum.edit.all: "编辑任意帖子"
+    forum.moderate: "管理论坛"
+    forum.post.lock: "锁定帖子"
+    forum.post.sticky: "置顶帖子"
+    forum.delete: "删除帖子"
+
+    # ========== 新闻相关权限 ==========
+    news.read: "查看新闻"
+    news.list: "新闻列表查看"
+    news.create: "创建新闻"
+    news.update: "更新新闻"
+    news.delete: "删除新闻"
+    news.publish: "发布新闻"
+    news.archive: "归档新闻"
+
+    # ========== 系统管理权限 ==========
+    manage.users: "用户管理"
+    manage.roles: "角色管理"
+    manage.permissions: "权限管理"
+    manage.system: "系统管理"
+    manage.config: "系统配置管理"
+    manage.logs: "日志管理"
+    manage.content: "内容管理"
+    manage.news: "新闻管理"
+    manage.forum: "论坛管理"
+    manage.submissions: "提交管理"
+
+    # ========== 统计信息权限 ==========
+    stats.read: "查看统计信息"
+    stats.admin: "管理员统计信息"
+
+    # ========== 通配符权限 ==========
+    "*": "全权限"
+    "user.*": "用户相关所有权限"
+    "problem.*": "题目相关所有权限"
+    "testcase.*": "测试用例相关所有权限"
+    "submission.*": "提交相关所有权限"
+    "forum.*": "论坛相关所有权限"
+    "news.*": "新闻相关所有权限"
+    "manage.*": "管理相关所有权限"
+    "stats.*": "统计相关所有权限"
+
+  # RBAC角色定义 - 与Go代码完全一致
+  x-rbac-roles:
+    student:
+      name: "学生"
+      description: "学生用户，基础功能权限"
+      level: 1
+      permissions:
+        - user.profile.read
+        - user.profile.update
+        - user.password.change
+        - user.avatar.upload
+        - problem.read
+        - problem.list
+        - testcase.read.sample
+        - submission.create
+        - submission.read
+        - submission.list
+        - forum.post.create
+        - forum.post.read
+        - forum.reply.create
+        - forum.reply.read
+        - news.read
+        - news.list
+        - stats.read
+      description: "学生用户，可查看个人资料、题目、提交代码、参与论坛讨论、查看新闻和统计信息"
+
+    teacher:
+      name: "教师"
+      description: "教师用户，包含学生权限并增加题目管理权限"
+      level: 2
+      permissions:
+        - user.profile.read
+        - user.profile.update
+        - user.password.change
+        - user.avatar.upload
+        - problem.read
+        - problem.list
+        - problem.create
+        - problem.update.own
+        - problem.delete.own
+        - testcase.read.sample
+        - testcase.read.own
+        - testcase.create
+        - testcase.update
+        - testcase.delete
+        - submission.create
+        - submission.read
+        - submission.list
+        - forum.post.create
+        - forum.post.read
+        - forum.reply.create
+        - forum.reply.read
+        - news.read
+        - news.list
+        - news.create
+        - news.update
+        - news.delete
+        - stats.read
+      description: "教师用户，拥有学生所有权限，并可创建和管理题目、测试用例、新闻内容"
+
+    admin:
+      name: "管理员"
+      description: "管理员用户，包含教师权限并增加系统管理权限"
+      level: 3
+      permissions:
+        - user.profile.read
+        - user.profile.update
+        - user.password.change
+        - user.avatar.upload
+        - user.create
+        - user.read
+        - user.update
+        - user.delete
+        - user.ban
+        - user.unban
+        - problem.read
+        - problem.list
+        - problem.create
+        - problem.update.own
+        - problem.update.all
+        - problem.delete.own
+        - problem.delete.all
+        - problem.publish
+        - problem.archive
+        - testcase.read.sample
+        - testcase.read.own
+        - testcase.read.all
+        - testcase.create
+        - testcase.update
+        - testcase.delete
+        - submission.create
+        - submission.read
+        - submission.list
+        - submission.manage
+        - submission.delete
+        - submission.rejudge
+        - forum.post.create
+        - forum.post.read
+        - forum.reply.create
+        - forum.reply.read
+        - forum.edit.own
+        - forum.edit.all
+        - forum.moderate
+        - forum.post.lock
+        - forum.post.sticky
+        - forum.delete
+        - news.read
+        - news.list
+        - news.create
+        - news.update
+        - news.delete
+        - news.publish
+        - news.archive
+        - manage.users
+        - manage.system
+        - manage.config
+        - manage.content
+        - manage.news
+        - manage.forum
+        - manage.submissions
+        - stats.read
+        - stats.admin
+      description: "管理员用户，拥有教师所有权限，并可管理用户、系统配置、审核内容、查看高级统计"
+
+    super_admin:
+      name: "超级管理员"
+      description: "超级管理员，拥有所有权限"
+      level: 4
+      permissions:
+        - "*"
+      description: "超级管理员，拥有系统所有功能权限"
+
+  # 权限检查规范
+  x-rbac-auth:
+    # 权限检查标记规范
+    permission_check_format:
+      description: "权限检查标记格式"
+      syntax: "x-rbac-permissions: [permission_list]"
+      examples:
+        single: "x-rbac-permissions: [user.read]"
+        multiple: "x-rbac-permissions: [user.read, user.update]"
+        wildcard: "x-rbac-permissions: [manage.users]"
+
+    # 角色检查标记规范
+    role_check_format:
+      description: "角色检查标记格式"
+      syntax: "x-rbac-roles: [role_list]"
+      examples:
+        single: "x-rbac-roles: [admin]"
+        multiple: "x-rbac-roles: [admin, super_admin]"
+
+    # 混合检查标记规范
+    mixed_check_format:
+      description: "混合权限检查标记格式"
+      syntax: "x-rbac-require: {permissions: [...], roles: [...], operator: 'AND|OR'}"
+      examples:
+        or_example: "x-rbac-require: {permissions: [user.read], roles: [admin], operator: 'OR'}"
+        and_example: "x-rbac-require: {permissions: [user.read, user.update], operator: 'AND'}"
