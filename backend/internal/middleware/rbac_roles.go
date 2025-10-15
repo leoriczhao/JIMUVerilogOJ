@@ -11,7 +11,7 @@ import (
 type RBAC struct {
 	rolePermissions map[string][]string
 	userCache       map[string][]string
-	userCacheKeys   map[uint][]string  // 记录用户ID对应的缓存键
+	userCacheKeys   map[uint][]string // 记录用户ID对应的缓存键
 	cacheMutex      sync.RWMutex
 }
 
