@@ -178,6 +178,9 @@ class OpenAPIValidator:
         if module_name not in self.schemas:
             self.schemas[module_name] = {}
 
+        # 标准化路径，避免相对路径导致的缓存键不一致
+        spec_path = spec_path.resolve()
+
         # 加载referenced schema文件，建立完整的文档上下文
         # 如果spec中有components引用，需要加载这些文件
         models_dir = spec_path.parent / 'models'
@@ -186,9 +189,10 @@ class OpenAPIValidator:
         # 预加载所有模型文件
         if models_dir.exists():
             for model_file in models_dir.glob('*.yaml'):
-                model_data = self._load_yaml_file(model_file)
+                resolved_model_file = model_file.resolve()
+                model_data = self._load_yaml_file(resolved_model_file)
                 if model_data:
-                    schema_documents[model_file] = model_data
+                    schema_documents[resolved_model_file] = model_data
 
         # 从paths中提取每个endpoint的响应schema
         paths = spec.get('paths', {})
@@ -237,6 +241,8 @@ class OpenAPIValidator:
         if not isinstance(schema, dict):
             return schema
 
+        base_path = base_path.resolve()
+
         if '$ref' in schema:
             ref = schema['$ref']
 
@@ -248,7 +254,7 @@ class OpenAPIValidator:
                     ref_file = (base_path.parent / file_ref).resolve()
 
                     # 从预加载的文档中获取
-                    ref_document = schema_documents.get(ref_file)
+                        ref_document = schema_documents.get(ref_file.resolve())
                     if ref_document:
                         # 解析JSON路径
                         path_parts = json_path.strip('/').split('/')
