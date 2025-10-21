@@ -1,32 +1,28 @@
 # Repository Guidelines
 
+Use this guide to onboard quickly and keep updates consistent across services.
+
 ## Project Structure & Module Organization
-- `backend/` hosts the main Go service; use `cmd/main.go` as the entry point and keep application logic inside `internal/` (handlers, services, middleware) with shared helpers under `pkg/`.
-- `judge-service/` contains the asynchronous judging pipeline; mirror the backend layout when adding queue or grading logic.
-- `frontend/` is reserved for the Vue 3 client; store UI assets and route modules there when work begins.
-- `tests/` provides a Python API test suite managed by `uv`; `docs/`, `docker/`, and `scripts/` hold reference material, container specs, and automation such as `deploy.sh`.
+- `backend/` hosts the Go API; start from `cmd/main.go` and keep request logic in `internal/handlers`, business rules in `internal/services`, middleware under `internal/middleware`, and shared helpers in `pkg/`.
+- `judge-service/` mirrors the backend layout for asynchronous judging; queue clients live in `internal/queue`, grading strategies in `internal/grader`.
+- `frontend/` is reserved for the upcoming Vue 3 SPA; place route modules inside `frontend/src/router` and shared UI assets inside `frontend/src/assets`.
+- `tests/` contains the Python API acceptance suite; `docs/`, `docker/`, and `scripts/` collect reference material, container specs, and automation such as `scripts/deploy.sh`.
 
 ## Build, Test, and Development Commands
-- `cd backend && make build` compiles the Go API to `backend/main`; `make run` builds and starts it locally.
-- `make test`, `make test-verbose`, and `make test-coverage` execute Go unit tests with optional verbosity or coverage output.
-- `make check` chains `fmt`, `vet`, `lint`, and `test`; run it before every push.
-- `make dev-start` / `make dev-stop` spin up or tear down the Docker-based dev stack defined in `docker-compose.dev.yml`.
+- `cd backend && make build` compiles the Go API into `backend/main`; use `make run` during local iteration.
+- `cd backend && make test` (or `make test-verbose`) runs unit tests; `make test-coverage` writes `coverage.out`.
+- `cd backend && make check` chains `fmt`, `vet`, `lint`, and `test`. Run it before commits land in main.
+- `make dev-start` and `make dev-stop` boot or tear down the Docker compose stack defined in `docker-compose.dev.yml`.
+- `make security-check` scans dependencies for known vulnerabilities.
 
 ## Coding Style & Naming Conventions
-- Format Go code with `make fmt` (gofmt) before committing; `golangci-lint` backs the `make lint` target.
-- Follow Go package norms: exported items use `CamelCase`, private helpers use `camelCase`, and test files end with `_test.go`.
-- Python fixtures in `tests/` follow PEP 8 `snake_case`; keep modules focused on a single API area.
+Run `cd backend && make fmt` (gofmt) to enforce formatting; `golangci-lint` backs `make lint`. Use `CamelCase` for exported Go symbols, `camelCase` for private helpers, and name tests `*_test.go`. Python fixtures in `tests/` follow PEP 8 `snake_case`.
 
 ## Testing Guidelines
-- Go tests live alongside their packages; add new cases using `func TestXxx(t *testing.T)` names so `go test ./...` discovers them.
-- For end-to-end checks, `cd tests && uv sync` once, then `./run_tests.sh` or `uv run python test_all.py --modules <area>` against a running backend.
-- Store coverage artifacts locally: `backend/coverage.out` and HTML reports remain untracked.
+Go tests sit beside their packages; define cases as `func TestXxx(t *testing.T)` so `go test ./...` discovers them. For API flows, run `cd tests && uv sync` once, then `./run_tests.sh` or `uv run python test_all.py --modules submissions` against a running backend. Keep generated coverage reports untracked.
 
 ## Commit & Pull Request Guidelines
-- Match the existing Conventional Commit style (`feat:`, `fix:`, `chore:`) with concise, imperative subjects under 72 characters.
-- Open pull requests with a clear summary, linked issues, verification steps (`make check`, `./run_tests.sh`), and screenshots for UI work.
-- Keep changes scoped to one feature or bugfix; update `docs/` when behavior or endpoints shift.
+Follow Conventional Commits such as `feat: add judge timeout` or `fix: handle submission retry`. Pull requests should summarize the change, link issues, include verification steps (`make check`, `./run_tests.sh`), and attach screenshots for UI updates. Keep each PR focused and update `docs/` when behavior or endpoints change.
 
 ## Security & Configuration Tips
-- Base environment variables on `docs/environment.md`; copy to `.env.dev` or `.env.prod` and never commit secrets.
-- Validate new dependencies for vulnerabilities with `make security-check`, and review Docker changes for exposed ports or credentials.
+Base environment values on `docs/environment.md`, copying into `.env.dev` or `.env.prod` without committing secrets. Audit container edits for exposed ports or credentials, and prefer `make security-check` before deploying new dependencies.
