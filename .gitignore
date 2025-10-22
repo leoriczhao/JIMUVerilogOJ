@@ -121,4 +121,20 @@ test-output/
 *.bak
 *.backup
 .env.dev
+
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# Debug and temporary files
+**/debug_*.py
+**/temp_*.py
+**/*_debug.py
+**/*_temp.py
