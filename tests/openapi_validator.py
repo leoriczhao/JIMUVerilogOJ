@@ -402,6 +402,116 @@ class OpenAPIValidator:
             return {module: list(self.schemas.get(module, {}).keys())}
         return {m: list(schemas.keys()) for m, schemas in self.schemas.items()}
 
+    def get_required_permissions(self, module: str, method: str, endpoint: str) -> list:
+        """
+        从 OpenAPI 获取端点需要的权限
+
+        Args:
+            module: 模块名（如 'user', 'problem'）
+            method: HTTP 方法
+            endpoint: API 端点
+
+        Returns:
+            权限列表，如 ['problem.create']
+            如果没有权限要求返回空列表（公开接口）
+        """
+        spec = self.specs.get(module)
+        if not spec or 'paths' not in spec:
+            return []
+
+        # 规范化端点路径
+        normalized_endpoint = self._normalize_endpoint(endpoint)
+
+        # 查找匹配的路径
+        path_item = None
+        for path_pattern in spec['paths']:
+            if self._match_path(path_pattern, normalized_endpoint):
+                path_item = spec['paths'][path_pattern]
+                break
+
+        if not path_item:
+            return []
+
+        # 获取方法定义
+        method_lower = method.lower()
+        operation = path_item.get(method_lower, {})
+
+        # 提取 x-rbac-permissions
+        permissions = operation.get('x-rbac-permissions', [])
+
+        return permissions if isinstance(permissions, list) else []
+
+    def is_public_endpoint(self, module: str, method: str, endpoint: str) -> bool:
+        """
+        判断是否为公开端点（无需认证）
+
+        Args:
+            module: 模块名
+            method: HTTP 方法
+            endpoint: API 端点
+
+        Returns:
+            True 如果是公开接口
+        """
+        # 已知的公开接口
+        public_endpoints = [
+            ('POST', '/users/register'),
+            ('POST', '/users/login'),
+        ]
+
+        normalized_endpoint = endpoint.split('?')[0]
+        if (method.upper(), normalized_endpoint) in public_endpoints:
+            return True
+
+        # 检查是否有权限要求
+        permissions = self.get_required_permissions(module, method, endpoint)
+        return len(permissions) == 0
+
+    def suggest_role_for_endpoint(self, module: str, method: str, endpoint: str) -> str:
+        """
+        根据权限推荐角色
+
+        Args:
+            module: 模块名
+            method: HTTP 方法
+            endpoint: API 端点
+
+        Returns:
+            'student', 'teacher', 或 'admin'
+        """
+        from fixtures.permissions import suggest_role_for_permissions
+
+        permissions = self.get_required_permissions(module, method, endpoint)
+        if not permissions:
+            return None  # 公开接口
+
+        return suggest_role_for_permissions(permissions)
+
+    def _normalize_endpoint(self, endpoint: str) -> str:
+        """规范化端点路径，移除查询参数"""
+        return endpoint.split('?')[0]
+
+    def _match_path(self, path_pattern: str, endpoint: str) -> bool:
+        """
+        匹配路径模式（支持 OpenAPI 的路径参数）
+
+        Args:
+            path_pattern: OpenAPI 路径模式，如 '/problems/{id}'
+            endpoint: 实际端点，如 '/problems/1'
+
+        Returns:
+            True 如果匹配
+        """
+        # 简单实现：将 {id} 等参数替换为正则
+        import re
+
+        # 转换 OpenAPI 路径模式为正则表达式
+        pattern = path_pattern
+        pattern = re.sub(r'\{[^}]+\}', r'[^/]+', pattern)  # {id} -> [^/]+
+        pattern = '^' + pattern + '$'
+
+        return bool(re.match(pattern, endpoint))
+
 
 # 全局验证器实例
 _validator = None

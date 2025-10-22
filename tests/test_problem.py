@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-题目管理测试模块
-测试题目的增删改查功能
+题目管理测试模块（重构版）
+展示使用新的 RBAC 测试框架进行测试的最佳实践
 """
 
 from base_test import BaseAPITester
@@ -9,300 +9,263 @@ from colorama import Back
 
 
 class ProblemTester(BaseAPITester):
-    """题目管理测试类"""
-    
+    """题目管理测试类（基于 RBAC）"""
+
     def __init__(self):
         super().__init__()
-        self.problem_id = None
-        self.problem_ids = []  # 存储多个问题ID
+        # 初始化用户池
+        self.setup_user_pool()
 
-    def setup_auth(self):
-        """设置认证（需要先登录获取token）"""
-        test_user = {
-            "username": self.generate_unique_name("problemtester"),
-            "email": f"{self.generate_unique_name('test')}@example.com",
-            "password": "password123",
-            "nickname": "题目测试员"
-        }
+    def run_tests(self):
+        """主测试流程"""
+        test_results = []
 
-        # 注册用户（将获得默认的student角色）
-        reg_response = self.make_request("POST", "/users/register", data=test_user, expect_status=201)
-        if not reg_response or "user" not in reg_response:
-            return False
+        try:
+            # 1. 公开接口测试
+            test_results.append(("获取题目列表(公开)", self.test_list_problems_public()))
 
-        user_id = reg_response["user"]["id"]
+            # 2. 学生角色测试
+            self.print_section_header("学生角色测试", Back.BLUE)
+            self.login_as('student')
+            test_results.append(("学生-查看题目列表", self.test_list_problems()))
+            test_results.append(("学生-创建题目(应拒绝)", self.test_create_problem_as_student()))
 
-        # 登录获取token
-        login_data = {
-            "username": test_user["username"],
-            "password": test_user["password"]
-        }
-        login_response = self.make_request("POST", "/users/login", data=login_data, expect_status=200)
+            # 3. 教师角色测试
+            self.print_section_header("教师角色测试", Back.GREEN)
+            self.login_as('teacher')
+            test_results.append(("教师-创建题目", self.test_create_problem_as_teacher()))
+            test_results.append(("教师-更新自己的题目", self.test_update_own_problem()))
+            test_results.append(("教师-添加测试用例", self.test_add_testcase()))
 
-        if not login_response or "token" not in login_response:
-            return False
+            # 4. 管理员角色测试
+            self.print_section_header("管理员角色测试", Back.MAGENTA)
+            self.login_as('admin')
+            test_results.append(("管理员-更新任意题目", self.test_update_any_problem()))
+            test_results.append(("管理员-删除题目", self.test_delete_problem()))
 
-        # 暂存token
-        student_token = login_response["token"]
+            # 5. 权限边界测试
+            self.print_section_header("权限边界测试", Back.RED)
+            test_results.append(("未登录-创建题目(应拒绝)", self.test_create_problem_unauthorized()))
 
-        # 使用管理员账号来提升权限
-        # 注意：这里假设有一个预先存在的管理员账号，或者需要手动创建
-        # 为了测试，我们可以尝试用默认管理员登录，如果失败则继续以student身份
-        admin_login = {
-            "username": "admin",
-            "password": "admin123"
-        }
-        admin_response = self.make_request("POST", "/users/login", data=admin_login, expect_status=200)
+        finally:
+            # 6. 清理测试数据
+            self.cleanup()
 
-        if admin_response and "token" in admin_response:
-            # 使用管理员token
-            self.set_token(admin_response["token"])
+        # 7. 打印测试报告
+        return self.print_test_summary(test_results)
 
-            # 提升测试用户为admin角色
-            update_role = self.make_request(
-                "PUT",
-                f"/admin/users/{user_id}/role",
-                data={"role": "admin"},
-                expect_status=200
-            )
+    # ========== 公开接口测试 ==========
 
-            if not update_role:
-                self.log_warning("无法提升用户角色，将以student身份继续测试")
-                self.set_token(student_token)
-            else:
-                # 重新登录以获取更新后角色的token
-                login_response = self.make_request("POST", "/users/login", data=login_data, expect_status=200)
-                if login_response and "token" in login_response:
-                    self.set_token(login_response["token"])
-                else:
-                    return False
-        else:
-            # 无管理员账号，以student身份继续
-            self.log_warning("无管理员账号，将以student身份继续测试（部分测试可能失败）")
-            self.set_token(student_token)
+    def test_list_problems_public(self):
+        """测试公开获取题目列表（无需登录）"""
+        self.print_section_header("测试公开获取题目列表", Back.CYAN)
 
-        return True
+        # 清除 token，模拟未登录用户
+        self.clear_token()
 
-    def test_list_problems(self):
-        """测试获取题目列表"""
-        self.print_section_header("测试获取题目列表", Back.MAGENTA)
-        response = self.make_request("GET", "/problems", expect_status=200)
+        response = self.make_request(
+            "GET", "/problems",
+            expect_status=200,
+            module="problem"
+        )
+
         return response is not None
 
-    def test_create_problem(self):
-        """测试创建题目"""
-        self.print_section_header("测试创建题目", Back.MAGENTA)
+    # ========== 学生角色测试 ==========
+
+    def test_list_problems(self):
+        """学生查看题目列表（应该成功）"""
+        response = self.make_request(
+            "GET", "/problems",
+            expect_status=200,
+            module="problem"
+        )
+
+        if response:
+            self.log_success(f"获取到 {response.get('total', 0)} 个题目")
+            return True
+        return False
+
+    def test_create_problem_as_student(self):
+        """学生创建题目（应该被拒绝 403）"""
         problem_data = {
-            "title": f"测试题目_{self.generate_unique_name()}",
-            "description": "这是一个测试题目的描述。",
+            "title": "学生尝试创建的题目",
+            "description": "这个请求应该被拒绝",
             "difficulty": "Easy",
             "time_limit": 1000,
             "memory_limit": 256,
-            "tags": ["基础", "逻辑"]
+            "tags": ["测试"]
         }
-        response = self.make_request("POST", "/problems", data=problem_data, expect_status=201)
-        if response and "problem" in response and "id" in response["problem"]:
-            self.problem_id = response["problem"]["id"]
-            self.problem_ids.append(self.problem_id)
-            self.log_success(f"创建题目成功，ID: {self.problem_id}")
-            return True
-        self.log_error("创建题目失败")
+
+        response = self.make_request(
+            "POST", "/problems",
+            data=problem_data,
+            expect_status=403,  # 期望权限不足
+            module="problem"
+        )
+
+        # 验证是否正确返回 403
+        return self.assert_forbidden(response)
+
+    # ========== 教师角色测试 ==========
+
+    def test_create_problem_as_teacher(self):
+        """教师创建题目（应该成功）"""
+        problem_data = {
+            "title": f"测试题目_{self.generate_unique_name()}",
+            "description": "这是一个教师创建的测试题目。",
+            "difficulty": "Medium",
+            "time_limit": 1500,
+            "memory_limit": 512,
+            "tags": ["测试", "教师创建"]
+        }
+
+        response = self.make_request(
+            "POST", "/problems",
+            data=problem_data,
+            expect_status=201,
+            module="problem"
+        )
+
+        if response:
+            # 从响应中获取题目 ID（可能在 response['problem']['id'] 或 response['id']）
+            problem_id = None
+            if 'problem' in response and 'id' in response['problem']:
+                problem_id = response['problem']['id']
+            elif 'id' in response:
+                problem_id = response['id']
+
+            if problem_id:
+                self.log_success(f"教师成功创建题目，ID: {problem_id}")
+
+                # 标记用于清理
+                self.mark_for_cleanup('problem', problem_id)
+
+                # 保存用于后续测试
+                self.problem_id = problem_id
+                return True
+
         return False
 
-    def test_create_multiple_problems(self):
-        """测试创建多个题目"""
-        self.print_section_header("测试创建多个题目", Back.MAGENTA)
-        difficulties = ["Easy", "Medium", "Hard"]
-        success_count = 0
-        
-        for i, difficulty in enumerate(difficulties, 1):
-            problem_data = {
-                "title": f"批量测试题目_{i}_{self.generate_unique_name()}",
-                "description": f"这是第{i}个测试题目，难度为{difficulty}。",
-                "difficulty": difficulty,
-                "time_limit": 1000 + i * 500,
-                "memory_limit": 256 + i * 128,
-                "tags": ["批量测试", difficulty]
-            }
-            response = self.make_request("POST", "/problems", data=problem_data, expect_status=201)
-            if response and "problem" in response and "id" in response["problem"]:
-                problem_id = response["problem"]["id"]
-                self.problem_ids.append(problem_id)
-                self.log_success(f"创建题目{i}成功，ID: {problem_id}")
-                success_count += 1
-            else:
-                self.log_error(f"创建题目{i}失败")
-        
-        self.log_info(f"批量创建完成，成功创建{success_count}个题目，总共{len(self.problem_ids)}个题目")
-        return success_count > 0
-
-    def test_get_problem_detail(self):
-        """测试获取题目详情"""
-        self.print_section_header("测试获取题目详情", Back.MAGENTA)
-        if not self.problem_id:
-            self.log_warning("没有题目ID，跳过测试")
+    def test_update_own_problem(self):
+        """教师更新自己创建的题目（应该成功）"""
+        if not hasattr(self, 'problem_id'):
+            self.log_warning("没有可更新的题目，跳过测试")
             return True
-        response = self.make_request("GET", f"/problems/{self.problem_id}", expect_status=200)
-        return response is not None
 
-    def test_update_problem(self):
-        """测试更新题目"""
-        self.print_section_header("测试更新题目", Back.MAGENTA)
-        if not self.problem_id:
-            self.log_warning("没有题目ID，跳过测试")
-            return True
         update_data = {
             "title": f"更新后的题目_{self.generate_unique_name()}",
-            "difficulty": "Medium"
+            "description": "题目已被更新",
+            "difficulty": "Hard"
         }
-        response = self.make_request("PUT", f"/problems/{self.problem_id}", data=update_data, expect_status=200)
-        return response is not None
 
-    def test_delete_problem(self):
-        """测试删除题目"""
-        self.print_section_header("测试删除题目", Back.MAGENTA)
-        if not self.problem_ids:
-            self.log_warning("没有剩余的题目ID，跳过测试")
-            return True
-        
-        # 使用剩余ID列表中的第一个ID进行删除
-        problem_id = self.problem_ids[0]
-        response = self.make_request("DELETE", f"/problems/{problem_id}", expect_status=200)
-        if response:
-            self.log_success(f"删除题目 {problem_id} 成功")
-            self.problem_ids.remove(problem_id)
-            if self.problem_id == problem_id:
-                self.problem_id = None  # 清除ID
-            return True
-        return False
+        response = self.make_request(
+            "PUT", f"/problems/{self.problem_id}",
+            data=update_data,
+            expect_status=200,
+            module="problem"
+        )
 
-    def test_delete_partial_problems(self):
-        """测试删除部分题目（保留一些用于查看列表效果）"""
-        self.print_section_header("测试删除部分题目", Back.MAGENTA)
-        if not self.problem_ids:
-            self.log_warning("没有题目ID列表，跳过测试")
-            return True
-        
-        # 只删除一半的题目，保留其他的
-        delete_count = len(self.problem_ids) // 2
-        if delete_count == 0:
-            delete_count = 1  # 至少删除一个
-        
-        deleted_count = 0
-        for i in range(delete_count):
-            if i < len(self.problem_ids):
-                problem_id = self.problem_ids[i]
-                response = self.make_request("DELETE", f"/problems/{problem_id}", expect_status=200)
-                if response:
-                    self.log_success(f"删除题目 {problem_id} 成功")
-                    deleted_count += 1
-                else:
-                    self.log_error(f"删除题目 {problem_id} 失败")
-        
-        # 更新问题ID列表，移除已删除的
-        self.problem_ids = self.problem_ids[delete_count:]
-        remaining_count = len(self.problem_ids)
-        
-        self.log_info(f"删除了{deleted_count}个题目，还剩余{remaining_count}个题目用于列表展示")
-        return deleted_count > 0
-
-    def test_unauthorized_create_problem(self):
-        """测试未授权创建题目"""
-        self.print_section_header("测试未授权创建题目", Back.RED)
-        old_token = self.token
-        self.clear_token() # 模拟未授权
-        problem_data = {"title": "未授权"}
-        response = self.make_request("POST", "/problems", data=problem_data, expect_status=401)
-        self.set_token(old_token) # 恢复
-        return response is not None
-
-    def test_get_testcases(self):
-        """测试获取题目测试用例"""
-        self.print_section_header("测试获取题目测试用例", Back.MAGENTA)
-        if not self.problem_id:
-            self.log_warning("没有题目ID，跳过测试")
-            return True
-        response = self.make_request("GET", f"/problems/{self.problem_id}/testcases", expect_status=200)
         return response is not None
 
     def test_add_testcase(self):
-        """测试添加测试用例"""
-        self.print_section_header("测试添加测试用例", Back.MAGENTA)
-        if not self.problem_id:
-            self.log_warning("没有题目ID，跳过测试")
+        """教师添加测试用例（应该成功）"""
+        if not hasattr(self, 'problem_id'):
+            self.log_warning("没有可添加测试用例的题目，跳过测试")
             return True
+
         testcase_data = {
-            "input": "1 2 3",
-            "output": "6",
-            "is_sample": True
+            "input": "test input",
+            "expected_output": "test output",
+            "is_sample": True,
+            "score": 10
         }
-        response = self.make_request("POST", f"/problems/{self.problem_id}/testcases", data=testcase_data, expect_status=201)
+
+        response = self.make_request(
+            "POST", f"/problems/{self.problem_id}/testcases",
+            data=testcase_data,
+            expect_status=201,
+            module="problem"
+        )
+
         return response is not None
 
-    def test_get_problem_submissions(self):
-        """测试获取题目提交记录"""
-        self.print_section_header("测试获取题目提交记录", Back.MAGENTA)
-        if not self.problem_id:
-            self.log_warning("没有题目ID，跳过测试")
+    # ========== 管理员角色测试 ==========
+
+    def test_update_any_problem(self):
+        """管理员更新任意题目（应该成功）"""
+        if not hasattr(self, 'problem_id'):
+            self.log_warning("没有可更新的题目，跳过测试")
             return True
-        response = self.make_request("GET", f"/problems/{self.problem_id}/submissions", expect_status=200)
+
+        update_data = {
+            "title": "管理员更新的题目",
+            "description": "管理员可以更新任意题目"
+        }
+
+        response = self.make_request(
+            "PUT", f"/problems/{self.problem_id}",
+            data=update_data,
+            expect_status=200,
+            module="problem"
+        )
+
         return response is not None
 
-    def test_unauthorized_add_testcase(self):
-        """测试未授权添加测试用例"""
-        self.print_section_header("测试未授权添加测试用例", Back.RED)
-        if not self.problem_id:
-            self.log_warning("没有题目ID，跳过测试")
+    def test_delete_problem(self):
+        """管理员删除题目（应该成功）"""
+        if not hasattr(self, 'problem_id'):
+            self.log_warning("没有可删除的题目，跳过测试")
             return True
-        old_token = self.token
-        self.clear_token() # 模拟未授权
-        testcase_data = {"input": "test", "output": "test"}
-        response = self.make_request("POST", f"/problems/{self.problem_id}/testcases", data=testcase_data, expect_status=401)
-        self.set_token(old_token) # 恢复
-        return response is not None
 
-    def run_tests(self):
-        """运行所有测试"""
-        self.print_section_header("题目管理测试模块", Back.BLUE)
-        
-        if not self.setup_auth():
-            self.log_error("认证设置失败，跳过需要认证的测试")
-            test_flow = [
-                ("获取题目列表", self.test_list_problems),
-                ("未授权创建题目", self.test_unauthorized_create_problem),
+        response = self.make_request(
+            "DELETE", f"/problems/{self.problem_id}",
+            expect_status=200,
+            module="problem"
+        )
+
+        if response:
+            # 已删除，无需清理
+            self.cleanup_items = [
+                item for item in self.cleanup_items
+                if not (item['type'] == 'problem' and item['id'] == self.problem_id)
             ]
-        else:
-            test_flow = [
-                ("获取题目列表 (初始)", self.test_list_problems),
-                ("创建题目", self.test_create_problem),
-                ("批量创建多个题目", self.test_create_multiple_problems),
-                ("获取题目列表 (创建后)", self.test_list_problems),
-                ("获取题目详情", self.test_get_problem_detail),
-                ("获取题目测试用例", self.test_get_testcases),
-                ("添加测试用例", self.test_add_testcase),
-                ("获取题目提交记录", self.test_get_problem_submissions),
-                ("更新题目", self.test_update_problem),
-                ("删除部分题目", self.test_delete_partial_problems),
-                ("获取题目列表 (部分删除后)", self.test_list_problems),
-                ("删除单个题目", self.test_delete_problem),
-                ("获取题目列表 (最终)", self.test_list_problems),
-                ("未授权创建题目", self.test_unauthorized_create_problem),
-                ("未授权添加测试用例", self.test_unauthorized_add_testcase),
-            ]
+            return True
 
-        test_results = []
-        for name, test_func in test_flow:
-            test_results.append((name, test_func()))
+        return False
 
-        return self.print_test_summary(test_results)
+    # ========== 权限边界测试 ==========
+
+    def test_create_problem_unauthorized(self):
+        """未登录创建题目（应该被拒绝 401）"""
+        self.clear_token()
+
+        problem_data = {
+            "title": "未授权创建"
+        }
+
+        response = self.make_request(
+            "POST", "/problems",
+            data=problem_data,
+            expect_status=401,  # 期望未认证
+            module="problem"
+        )
+
+        return self.assert_unauthorized(response)
 
 
 def main():
     """主函数"""
+    print("\n" + "=" * 60)
+    print(" 题目管理测试模块（重构版 - 基于 RBAC）")
+    print("=" * 60 + "\n")
+
     tester = ProblemTester()
     success = tester.run_tests()
-    exit(0 if success else 1)
+
+    return 0 if success else 1
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    sys.exit(main())

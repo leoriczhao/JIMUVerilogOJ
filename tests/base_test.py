@@ -7,9 +7,11 @@ Verilog OJ API 测试基类
 import json
 import time
 import requests
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from colorama import init, Fore, Back, Style
 from openapi_validator import get_validator
+from fixtures.users import TestUserPool
+from fixtures.permissions import has_permission, get_minimum_role
 
 # 初始化colorama
 init(autoreset=True)
@@ -28,6 +30,13 @@ class BaseAPITester:
         self.enable_schema_validation = enable_schema_validation
         self.validator = get_validator() if enable_schema_validation else None
         self.validation_errors = []  # 记录所有验证错误
+
+        # 新增：用户池和角色管理
+        self.user_pool = None  # 用户池实例
+        self.current_role = None  # 当前角色
+
+        # 新增：资源清理管理
+        self.cleanup_items = []  # 需要清理的资源列表
         
     def log_success(self, message: str):
         """成功日志"""
@@ -213,4 +222,203 @@ class BaseAPITester:
 
     def clear_validation_errors(self):
         """清除schema验证错误记录"""
-        self.validation_errors = [] 
+        self.validation_errors = []
+
+    # ========== 新增：用户池和角色管理 ==========
+
+    def setup_user_pool(self):
+        """初始化用户池"""
+        if self.user_pool is None:
+            self.user_pool = TestUserPool()
+            self.user_pool.setup(self)
+            self.log_success("用户池初始化完成")
+
+    def login_as(self, role: str):
+        """
+        切换到指定角色
+
+        Args:
+            role: 角色名称 ('student', 'teacher', 'admin')
+
+        Raises:
+            Exception: 如果用户池未初始化或角色无效
+        """
+        if self.user_pool is None:
+            self.setup_user_pool()
+
+        if role not in ['student', 'teacher', 'admin']:
+            raise ValueError(f"无效的角色: {role}")
+
+        token = self.user_pool.get_token(role)
+        if not token:
+            raise Exception(f"无法获取 {role} 角色的 token")
+
+        self.set_token(token)
+        self.current_role = role
+        self.user_id = self.user_pool.get_user_id(role)
+
+        self.log_info(f"已切换到角色: {role} (用户ID: {self.user_id})")
+
+    def get_current_role(self) -> Optional[str]:
+        """获取当前角色"""
+        return self.current_role
+
+    def check_permission(self, permission: str) -> bool:
+        """
+        检查当前用户是否有指定权限
+
+        Args:
+            permission: 权限字符串
+
+        Returns:
+            True 如果有权限
+        """
+        if not self.current_role:
+            return False
+        return has_permission(self.current_role, permission)
+
+    # ========== 新增：资源清理管理 ==========
+
+    def mark_for_cleanup(self, resource_type: str, resource_id: int):
+        """
+        标记资源用于测试后清理
+
+        Args:
+            resource_type: 资源类型 ('problem', 'submission', 'post', 'news', 等)
+            resource_id: 资源ID
+        """
+        self.cleanup_items.append({
+            'type': resource_type,
+            'id': resource_id
+        })
+        self.log_info(f"标记 {resource_type} #{resource_id} 待清理")
+
+    def cleanup(self):
+        """
+        清理所有测试资源
+
+        按照依赖顺序倒序删除资源，最后清理用户
+        """
+        if not self.cleanup_items and not self.user_pool:
+            return
+
+        self.log_warning(f"开始清理测试数据 ({len(self.cleanup_items)} 个资源)...")
+
+        # 以管理员身份删除所有标记的资源
+        if self.cleanup_items:
+            try:
+                self.login_as('admin')
+            except:
+                self.log_error("无法切换到管理员角色进行清理")
+                return
+
+            # 倒序删除（后创建的先删除）
+            for item in reversed(self.cleanup_items):
+                self._delete_resource(item['type'], item['id'])
+
+        # 清理用户池
+        if self.user_pool:
+            self.user_pool.cleanup(self)
+
+        self.cleanup_items = []
+        self.log_success("测试数据清理完成")
+
+    def _delete_resource(self, resource_type: str, resource_id: int):
+        """
+        删除指定类型的资源
+
+        Args:
+            resource_type: 资源类型
+            resource_id: 资源ID
+        """
+        endpoint_map = {
+            'problem': f"/problems/{resource_id}",
+            'submission': f"/submissions/{resource_id}",
+            'post': f"/forum/posts/{resource_id}",
+            'news': f"/news/{resource_id}",
+        }
+
+        endpoint = endpoint_map.get(resource_type)
+        if not endpoint:
+            self.log_warning(f"未知的资源类型: {resource_type}")
+            return
+
+        # 尝试删除，忽略错误（资源可能已被删除）
+        response = self.make_request(
+            "DELETE", endpoint,
+            expect_status=200,
+            validate_schema=False
+        )
+
+        if response is not None:
+            self.log_success(f"已删除 {resource_type} #{resource_id}")
+        else:
+            self.log_warning(f"删除 {resource_type} #{resource_id} 失败（可能已不存在）")
+
+    # ========== 新增：权限测试断言 ==========
+
+    def assert_forbidden(self, response: Optional[Dict]) -> bool:
+        """
+        断言响应为 403 权限不足
+
+        Args:
+            response: API 响应
+
+        Returns:
+            True 如果断言成功
+        """
+        if response is None:
+            return True
+
+        is_forbidden = (
+            response.get('error') == 'forbidden' or
+            '权限不足' in str(response.get('message', ''))
+        )
+
+        if is_forbidden:
+            self.log_success("✓ 权限检查通过：正确返回 403 Forbidden")
+            return True
+        else:
+            self.log_error(f"✗ 期望 403 Forbidden，但得到: {response}")
+            return False
+
+    def assert_unauthorized(self, response: Optional[Dict]) -> bool:
+        """
+        断言响应为 401 未认证
+
+        Args:
+            response: API 响应
+
+        Returns:
+            True 如果断言成功
+        """
+        if response is None:
+            return True
+
+        is_unauthorized = (
+            response.get('error') == 'unauthorized' or
+            '未提供认证Token' in str(response.get('message', '')) or
+            '未认证' in str(response.get('message', ''))
+        )
+
+        if is_unauthorized:
+            self.log_success("✓ 认证检查通过：正确返回 401 Unauthorized")
+            return True
+        else:
+            self.log_error(f"✗ 期望 401 Unauthorized，但得到: {response}")
+            return False
+
+    def assert_has_permission(self, permission: str):
+        """
+        断言当前用户有指定权限
+
+        Args:
+            permission: 权限字符串
+
+        Raises:
+            AssertionError: 如果当前用户没有该权限
+        """
+        if not self.check_permission(permission):
+            raise AssertionError(
+                f"当前角色 {self.current_role} 没有权限 {permission}"
+            ) 
