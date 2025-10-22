@@ -1,273 +1,646 @@
-# Verilog OJ 在线判题系统
+# JIMUVerilogOJ - Verilog Online Judge System
 
-## 项目概述
+<div align="center">
 
-这是一个专门为 Verilog 硬件描述语言设计的在线判题系统，采用微服务架构，将判题功能与业务逻辑分离，确保系统的高可用性和可扩展性。
+[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://golang.org)
+[![Vue Version](https://img.shields.io/badge/Vue-3.x-4FC08D?style=flat&logo=vue.js)](https://vuejs.org)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![CI Status](https://github.com/leoriczhao/JIMUVerilogOJ/workflows/Backend%20CI/badge.svg)](https://github.com/leoriczhao/JIMUVerilogOJ/actions)
 
-## 系统特性
+A modern online judge platform specifically designed for Verilog HDL, featuring microservices architecture and efficient code compilation, testing, and evaluation services.
 
-✨ **核心功能**
-- 🔐 用户管理：注册、登录、权限控制
-- 📚 题库管理：题目创建、编辑、分类管理
-- ⚖️ 智能判题：Verilog代码编译和测试
-- 💬 论坛系统：讨论、回复、点赞功能
-- 📰 新闻管理：公告和新闻发布
-- 📊 统计分析：用户和题目数据统计
+[Features](#features) • [Quick Start](#quick-start) • [Development](#development) • [API Documentation](#api-documentation) • [Deployment](#deployment)
 
-🚀 **技术亮点**
-- 微服务架构，判题服务独立部署
-- Redis消息队列，异步处理判题任务
-- Docker容器化，一键部署
-- OpenAPI文档，完整的接口规范
-- 国内镜像源优化，快速构建
+**[English](README.md)** | [简体中文](README_zh.md)
 
-## 系统架构
+</div>
+
+---
+
+## 📑 Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [System Architecture](#system-architecture)
+- [Tech Stack](#tech-stack)
+- [Quick Start](#quick-start)
+- [Development Guide](#development-guide)
+- [API Documentation](#api-documentation)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Overview
+
+**JIMUVerilogOJ** is a fully-featured online judge system for Verilog Hardware Description Language, designed to provide a convenient code verification platform for hardware design learning and teaching. The system adopts a microservices architecture with front-end and back-end separation, deploying the judge engine independently to ensure high availability and scalability.
+
+### Core Advantages
+
+- 🎯 **Specialized** - Specifically designed for Verilog HDL, supporting complete compilation and simulation workflows
+- 🚀 **High Performance** - Asynchronous queue processing with independently deployed judge engine, supporting high concurrency
+- 🛡️ **Secure & Reliable** - Role-Based Access Control (RBAC) with comprehensive security mechanisms
+- 📊 **Easily Extensible** - Microservices architecture with modular design for easy feature expansion
+- 📖 **Developer Friendly** - Complete OpenAPI documentation with well-structured codebase
+
+## Features
+
+### 🔐 User System
+- User registration, login, and authentication
+- JWT Token authentication mechanism
+- Role-Based Access Control (Admin/User)
+- User profile management and personalization
+
+### 📚 Problem Management
+- Problem creation, editing, and categorization
+- Test case CRUD operations
+- Difficulty levels and tagging system
+- Problem search and filtering
+
+### ⚖️ Judge Engine
+- Verilog code compilation checking
+- Automated test case execution
+- Waveform comparison and result verification
+- Asynchronous queue processing for judge tasks
+- Detailed error feedback
+
+### 💬 Community Forum
+- Discussion posts and replies
+- Like and interaction features
+- Categorized discussion areas
+- Content management and moderation
+
+### 📰 News & Announcements
+- System announcements
+- News management
+- Categories and tagging
+
+### 📊 Statistics & Analytics
+- User submission statistics
+- Problem pass rate analysis
+- System usage monitoring
+
+## System Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│     Frontend    │    │     Backend     │    │  Judge Service  │
-│     (Vue.js)    │◄──►│      (Go)       │◄──►│      (Go)       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                 │                       │
-                                 ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   PostgreSQL    │    │      Redis      │    │   Verilog Tools │
-│   (Database)    │    │  (Cache/Queue)  │    │   (iverilog)    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         Client Layer                            │
+│  ┌──────────────────┐              ┌──────────────────┐        │
+│  │   User Frontend  │              │  Admin Frontend  │        │
+│  │     (Vue 3)      │              │     (Vue 3)      │        │
+│  └──────────────────┘              └──────────────────┘        │
+└────────────────┬──────────────────────────┬────────────────────┘
+                 │                          │
+                 └──────────┬───────────────┘
+                            │ HTTP/REST API
+                 ┌──────────▼───────────┐
+                 │   Nginx (Reverse     │
+                 │      Proxy)          │
+                 └──────────┬───────────┘
+                            │
+         ┌──────────────────┼──────────────────┐
+         │                  │                  │
+┌────────▼────────┐  ┌──────▼──────┐  ┌───────▼────────┐
+│  Backend API    │  │   Judge     │  │   Redis        │
+│    Service      │◄─┤   Service   │  │  (Cache/Queue) │
+│     (Go)        │  │    (Go)     │  └────────────────┘
+└────────┬────────┘  └──────┬──────┘
+         │                  │
+         │                  │
+    ┌────▼─────┐     ┌──────▼───────┐
+    │PostgreSQL│     │Verilog Tools │
+    │(Database)│     │  (iverilog)  │
+    └──────────┘     └──────────────┘
 ```
 
-## 技术栈
+### Service Components
 
-### 后端服务
-- **语言**: Go 1.21
-- **框架**: Gin (HTTP路由)
-- **数据库**: PostgreSQL 15 + GORM
-- **缓存**: Redis 7
-- **消息队列**: Redis
-- **文档**: Swagger/OpenAPI 3.0
+- **Frontend**: User interface for problem browsing and code submission
+- **Admin Frontend**: Administrative dashboard for system management and content moderation
+- **Backend Service**: Core business logic handling API requests
+- **Judge Service**: Independent judging service for code compilation and testing
+- **PostgreSQL**: Primary database storing users, problems, and other data
+- **Redis**: Cache and message queue supporting asynchronous judging
 
-### 前端服务（规划中）
-- **框架**: Vue 3 + TypeScript
-- **构建工具**: Vite
-- **UI组件**: Element Plus
-- **代码编辑器**: Monaco Editor
+## Tech Stack
 
-### 判题环境
-- **编译器**: iverilog (Icarus Verilog)
-- **波形查看**: GTKWave
-- **容器**: Ubuntu 22.04
+### Backend
 
-### 部署运维
-- **容器化**: Docker + Docker Compose
-- **反向代理**: Nginx
-- **监控**: 健康检查 + 日志管理
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Go | 1.21+ | Backend programming language |
+| Gin | Latest | HTTP routing framework |
+| GORM | Latest | ORM framework |
+| PostgreSQL | 15+ | Relational database |
+| Redis | 7+ | Cache and message queue |
+| Wire | Latest | Dependency injection |
+| JWT | - | Authentication |
 
-## 目录结构
+### Frontend
 
-```
-verilog-oj/
-├── backend/                    # 主后端服务
-│   ├── cmd/main.go            # 应用入口
-│   ├── internal/              # 内部模块
-│   │   ├── config/           # 配置管理
-│   │   ├── models/           # 数据模型
-│   │   ├── handlers/         # HTTP处理器
-│   │   ├── services/         # 业务逻辑
-│   │   └── middleware/       # 中间件
-│   ├── api/                  # API定义
-│   ├── pkg/                  # 共享包
-│   └── go.mod               # Go模块
-├── judge-service/             # 判题服务
-│   ├── cmd/main.go           # 应用入口
-│   ├── internal/             # 内部模块
-│   │   ├── config/          # 配置管理
-│   │   ├── judge/           # 判题逻辑
-│   │   └── queue/           # 队列处理
-│   ├── pkg/                 # 共享包
-│   └── go.mod              # Go模块
-├── frontend/                 # 前端项目（待开发）
-├── docker/                   # Docker配置
-│   ├── backend.Dockerfile   # 后端镜像
-│   ├── judge.Dockerfile     # 判题服务镜像
-│   └── nginx.conf          # Nginx配置
-├── docs/                    # 项目文档
-│   ├── api.yaml            # OpenAPI规范
-│   ├── architecture.md     # 架构设计
-│   └── environment.md      # 环境配置
-├── scripts/                 # 部署脚本
-│   └── deploy.sh           # 部署脚本
-├── docker-compose.yml       # 服务编排
-└── README.md               # 项目说明
-```
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Vue | 3.x | Frontend framework |
+| TypeScript | Latest | Type system |
+| Vite | Latest | Build tool |
+| Element Plus | Latest | UI component library |
+| Monaco Editor | Latest | Code editor |
 
-## 快速开始
+### Judge Environment
 
-### 环境要求
-- Docker 20.0+
-- Docker Compose 2.0+
+| Technology | Purpose |
+|------------|---------|
+| Icarus Verilog (iverilog) | Verilog compiler |
+| GTKWave | Waveform viewer |
+| Docker | Isolated judging environment |
 
-### 一键部署
+### DevOps
+
+| Technology | Purpose |
+|------------|---------|
+| Docker | Containerization |
+| Docker Compose | Service orchestration |
+| Nginx | Reverse proxy |
+| GitHub Actions | CI/CD |
+| golangci-lint | Code quality checking |
+
+## Quick Start
+
+### Prerequisites
+
+- **Docker** 20.0+
+- **Docker Compose** 2.0+
+- **Go** 1.21+ (for local development)
+- **Node.js** 18+ (for frontend development)
+
+### One-Click Deployment
 
 ```bash
-# 克隆项目
-git clone <repository-url>
-cd verilog-oj
+# Clone the repository
+git clone https://github.com/leoriczhao/JIMUVerilogOJ.git
+cd JIMUVerilogOJ
 
-# 开发环境部署
+# Deploy development environment
 ./scripts/deploy.sh --dev
 
-# 生产环境部署
+# Or deploy production environment
 ./scripts/deploy.sh --prod
 ```
 
-### 手动部署
+### Manual Deployment
 
 ```bash
-# 启动所有服务
+# Start all services
 docker-compose up -d
 
-# 查看服务状态
+# Check service status
 docker-compose ps
 
-# 查看日志
-docker-compose logs -f
+# View logs
+docker-compose logs -f backend
 ```
 
-### 访问地址
+### Access URLs
 
-- **前端页面**: http://localhost:80
-- **后端API**: http://localhost:8080
-- **API文档**: http://localhost:8080/docs
-- **数据库**: localhost:5432
-- **Redis**: localhost:6379
+After successful deployment:
 
-## 开发指南
+- **Frontend**: http://localhost:80
+- **Backend API**: http://localhost:8080
+- **API Docs**: http://localhost:8080/swagger/index.html
+- **Admin Panel**: http://localhost:3000
 
-### 环境配置
+Default admin credentials:
+- Username: `admin`
+- Password: `admin123`
 
-参考 [环境配置文档](docs/environment.md) 创建 `.env.dev` 文件：
+## Development Guide
+
+### Backend Development
+
+Navigate to the backend directory:
 
 ```bash
-# 数据库配置
+cd backend/
+
+# Install dependencies
+make deps
+
+# Generate dependency injection code (required after modifying wire.go)
+make wire-gen
+
+# Run service
+make run
+
+# Format code
+make fmt
+
+# Run linter
+make lint
+
+# Run tests
+make test
+
+# Generate test coverage
+make test-coverage
+
+# Run all checks
+make check
+```
+
+### Frontend Development
+
+```bash
+cd frontend/
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Lint code
+npm run lint
+
+# Type checking
+npm run type-check
+
+# Production build
+npm run build
+```
+
+### Admin Frontend Development
+
+```bash
+cd admin-frontend/
+
+# Same workflow as frontend
+npm install
+npm run dev
+```
+
+### API Testing
+
+Using Python test suite:
+
+```bash
+cd tests/
+
+# Using uv (recommended)
+uv run python test_all.py
+
+# Or using pip
+pip install -r requirements.txt
+python test_all.py
+```
+
+### Project Structure
+
+```
+JIMUVerilogOJ/
+├── backend/                    # Backend service
+│   ├── cmd/                    # Application entry point
+│   │   └── main.go
+│   ├── internal/               # Internal modules
+│   │   ├── config/            # Configuration management
+│   │   ├── models/            # Data models
+│   │   ├── handlers/          # HTTP handlers
+│   │   ├── services/          # Business logic layer
+│   │   ├── repository/        # Data access layer
+│   │   ├── middleware/        # Middleware
+│   │   └── wire.go           # Dependency injection config
+│   ├── Makefile              # Build scripts
+│   └── go.mod                # Go module dependencies
+│
+├── judge-service/             # Judge service
+│   ├── cmd/
+│   ├── internal/
+│   │   ├── judge/            # Judge logic
+│   │   └── queue/            # Queue processing
+│   └── go.mod
+│
+├── frontend/                  # User frontend
+│   ├── src/
+│   │   ├── components/       # Vue components
+│   │   ├── views/           # Page views
+│   │   ├── router/          # Router config
+│   │   └── stores/          # State management
+│   └── package.json
+│
+├── admin-frontend/           # Admin dashboard
+│   └── ...
+│
+├── tests/                    # API tests
+│   ├── test_user.py
+│   ├── test_problem.py
+│   └── test_submission.py
+│
+├── docs/                     # Documentation
+│   └── openapi/             # OpenAPI specifications
+│       ├── user.yaml
+│       ├── admin.yaml
+│       ├── problem.yaml
+│       ├── news.yaml
+│       └── submission.yaml
+│
+├── scripts/                  # Deployment scripts
+│   └── deploy.sh
+│
+├── docker/                   # Docker configurations
+│   ├── backend.Dockerfile
+│   └── judge.Dockerfile
+│
+├── .github/                  # GitHub configurations
+│   └── workflows/           # CI/CD workflows
+│
+├── docker-compose.yml        # Base service orchestration
+├── docker-compose.dev.yml    # Development environment
+├── docker-compose.prod.yml   # Production environment
+├── CLAUDE.md                 # Claude Code project guide
+└── README.md                 # This file
+```
+
+## API Documentation
+
+### OpenAPI Specifications
+
+The project uses OpenAPI 3.0 specifications, organized by modules:
+
+- **User API**: [docs/openapi/user.yaml](docs/openapi/user.yaml)
+- **Admin API**: [docs/openapi/admin.yaml](docs/openapi/admin.yaml)
+- **Problem API**: [docs/openapi/problem.yaml](docs/openapi/problem.yaml)
+- **Submission API**: [docs/openapi/submission.yaml](docs/openapi/submission.yaml)
+- **News API**: [docs/openapi/news.yaml](docs/openapi/news.yaml)
+
+### Online Documentation
+
+Access Swagger UI after starting the service:
+```
+http://localhost:8080/swagger/index.html
+```
+
+### Common API Examples
+
+#### User Registration
+```bash
+curl -X POST http://localhost:8080/api/v1/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "password123"
+  }'
+```
+
+#### User Login
+```bash
+curl -X POST http://localhost:8080/api/v1/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "password": "password123"
+  }'
+```
+
+#### Submit Code
+```bash
+curl -X POST http://localhost:8080/api/v1/submissions \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "problem_id": 1,
+    "code": "module test; ... endmodule",
+    "language": "verilog"
+  }'
+```
+
+## Testing
+
+### Backend Tests
+
+```bash
+cd backend/
+
+# Run all tests
+make test
+
+# Run specific service tests
+make test-user
+make test-services
+
+# View test coverage
+make test-coverage
+
+# View verbose output
+make test-verbose
+```
+
+### Integration Tests
+
+```bash
+cd tests/
+
+# Run all API tests
+uv run python test_all.py
+
+# Run specific tests
+uv run python test_user.py
+```
+
+### Code Quality Checks
+
+```bash
+cd backend/
+
+# Format code
+make fmt
+
+# Run linter
+make lint
+
+# Run vet
+make vet
+
+# Run all checks
+make check
+```
+
+## Deployment
+
+### Development Environment
+
+```bash
+# Using deployment script
+./scripts/deploy.sh --dev
+
+# Or manually
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+```
+
+### Production Environment
+
+1. **Configure Environment Variables**
+
+Create `.env.prod` file:
+
+```bash
+# Database configuration
 DB_HOST=postgres
+DB_PORT=5432
 DB_USERNAME=postgres
-DB_PASSWORD=password
+DB_PASSWORD=your_secure_password
 DB_DATABASE=verilog_oj
 
-# Redis配置
+# Redis configuration
 REDIS_HOST=redis
 REDIS_PORT=6379
+REDIS_PASSWORD=your_redis_password
 
-# JWT配置
-JWT_SECRET=your-secret-key
+# JWT configuration
+JWT_SECRET=your_jwt_secret_key_at_least_32_chars
+
+# Server configuration
+GIN_MODE=release
+SERVER_PORT=8080
 ```
 
-### API文档
-
-完整的API文档请查看：
-- [OpenAPI规范](docs/api.yaml)
-- Swagger UI: http://localhost:8080/docs
-
-### 架构设计
-
-详细的系统架构说明请查看：
-- [架构设计文档](docs/architecture.md)
-
-## 功能模块
-
-### 用户管理
-- ✅ 用户注册和登录
-- ✅ JWT认证和授权
-- ✅ 用户资料管理
-- ✅ 角色权限控制
-
-### 题库系统
-- ✅ 题目创建和编辑
-- ✅ 测试用例管理
-- ✅ 难度分级和分类
-- ✅ 题目搜索和筛选
-
-### 判题引擎
-- ✅ Verilog代码编译
-- ✅ 测试用例执行
-- ✅ 结果评估和反馈
-- ✅ 异步队列处理
-
-### 论坛系统
-- ✅ 帖子发布和回复
-- ✅ 点赞和互动功能
-- ✅ 分类讨论区
-- ✅ 内容审核机制
-
-### 管理后台
-- ✅ 用户管理
-- ✅ 题目审核
-- ✅ 系统监控
-- ✅ 数据统计
-
-## 部署说明
-
-### 生产环境
-
-1. **配置环境变量**
-   ```bash
-   cp docs/environment.md .env.prod
-   # 编辑 .env.prod 设置生产参数
-   ```
-
-2. **部署服务**
-   ```bash
-   ./scripts/deploy.sh --prod
-   ```
-
-3. **SSL配置**
-   - 配置域名解析
-   - 申请SSL证书
-   - 更新Nginx配置
-
-### 监控运维
+2. **Deploy Services**
 
 ```bash
-# 查看服务状态
-./scripts/deploy.sh --status
-
-# 查看日志
-./scripts/deploy.sh --logs
-
-# 重启服务
-./scripts/deploy.sh --restart
-
-# 停止服务
-./scripts/deploy.sh --stop
+./scripts/deploy.sh --prod
 ```
 
-## 贡献指南
+3. **Configure Nginx and SSL**
 
-欢迎贡献代码！请遵循以下流程：
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com;
+    return 301 https://$server_name$request_uri;
+}
 
-1. Fork 项目
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送分支 (`git push origin feature/AmazingFeature`)
-5. 创建 Pull Request
+server {
+    listen 443 ssl http2;
+    server_name yourdomain.com;
 
-## 开源协议
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
 
-本项目采用 Apache 2.0 协议开源，详见 [LICENSE](LICENSE) 文件。
+    location /api/ {
+        proxy_pass http://backend:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
 
-## 联系我们
+    location / {
+        proxy_pass http://frontend:3000;
+    }
+}
+```
 
-- **项目主页**: https://github.com/your-org/verilog-oj
-- **问题反馈**: https://github.com/your-org/verilog-oj/issues
-- **邮箱**: support@verilog-oj.com
+### Operations Commands
 
-## 致谢
+```bash
+# Check service status
+./scripts/deploy.sh --status
+docker-compose ps
 
-感谢以下开源项目的支持：
-- [Go](https://golang.org/) - 后端开发语言
-- [Gin](https://gin-gonic.com/) - HTTP框架
-- [GORM](https://gorm.io/) - ORM框架
-- [Redis](https://redis.io/) - 缓存和队列
-- [PostgreSQL](https://www.postgresql.org/) - 数据库
-- [Docker](https://www.docker.com/) - 容器化平台
-- [Icarus Verilog](http://iverilog.icarus.com/) - Verilog编译器 
+# View logs
+./scripts/deploy.sh --logs
+docker-compose logs -f backend
+
+# Restart services
+./scripts/deploy.sh --restart
+docker-compose restart backend
+
+# Stop services
+./scripts/deploy.sh --stop
+docker-compose down
+
+# Backup database
+docker-compose exec postgres pg_dump -U postgres verilog_oj > backup.sql
+
+# Restore database
+docker-compose exec -T postgres psql -U postgres verilog_oj < backup.sql
+```
+
+## Contributing
+
+We welcome and appreciate all forms of contributions!
+
+### Contribution Workflow
+
+1. **Fork the project** to your GitHub account
+2. **Clone the project** locally:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/JIMUVerilogOJ.git
+   ```
+3. **Create a feature branch**:
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+4. **Commit your changes**:
+   ```bash
+   git commit -m "feat: add amazing feature"
+   ```
+5. **Push the branch**:
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+6. **Create a Pull Request**
+
+### Commit Convention
+
+We follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` New features
+- `fix:` Bug fixes
+- `docs:` Documentation updates
+- `style:` Code formatting
+- `refactor:` Code refactoring
+- `test:` Test-related
+- `chore:` Build/tooling
+
+### Code Standards
+
+- **Go**: Follow [Effective Go](https://golang.org/doc/effective_go) and golangci-lint rules
+- **Vue/TypeScript**: Follow ESLint and Prettier configurations
+- **Pre-commit**: Ensure `make check` (backend) and `npm run lint` (frontend) pass
+
+## License
+
+This project is licensed under the [Apache License 2.0](LICENSE).
+
+## Contact
+
+- **Project Homepage**: https://github.com/leoriczhao/JIMUVerilogOJ
+- **Issue Tracker**: https://github.com/leoriczhao/JIMUVerilogOJ/issues
+- **Discussions**: https://github.com/leoriczhao/JIMUVerilogOJ/discussions
+
+## Acknowledgments
+
+Thanks to the following open-source projects and tools:
+
+- [Go](https://golang.org/) - Powerful backend programming language
+- [Gin](https://gin-gonic.com/) - High-performance HTTP framework
+- [GORM](https://gorm.io/) - Elegant ORM framework
+- [Vue.js](https://vuejs.org/) - Progressive frontend framework
+- [PostgreSQL](https://www.postgresql.org/) - Reliable relational database
+- [Redis](https://redis.io/) - High-performance cache and message queue
+- [Docker](https://www.docker.com/) - Containerization platform
+- [Icarus Verilog](http://iverilog.icarus.com/) - Verilog compiler
+
+## Star History
+
+If this project helps you, please give us a ⭐️!
+
+[![Star History Chart](https://api.star-history.com/svg?repos=leoriczhao/JIMUVerilogOJ&type=Date)](https://star-history.com/#leoriczhao/JIMUVerilogOJ&Date)
+
+---
+
+<div align="center">
+
+**[⬆ Back to Top](#jimuverilogoj---verilog-online-judge-system)**
+
+Made with ❤️ by [leoriczhao](https://github.com/leoriczhao)
+
+</div>
