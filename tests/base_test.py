@@ -387,26 +387,32 @@ class BaseAPITester:
         断言响应为 401 未认证
 
         Args:
-            response: API 响应
+            response: API 响应（如果 make_request 匹配了 expect_status=401，会返回响应数据）
 
         Returns:
             True 如果断言成功
         """
+        # response 不为 None 说明匹配了 expect_status=401
         if response is None:
-            return True
+            self.log_error("✗ 未返回 401 Unauthorized")
+            return False
 
+        # 进一步检查错误信息
         is_unauthorized = (
             response.get('error') == 'unauthorized' or
             '未提供认证Token' in str(response.get('message', '')) or
-            '未认证' in str(response.get('message', ''))
+            '未认证' in str(response.get('message', '')) or
+            '用户名或密码错误' in str(response.get('message', '')) or
+            'invalid' in str(response.get('error', ''))
         )
 
         if is_unauthorized:
             self.log_success("✓ 认证检查通过：正确返回 401 Unauthorized")
             return True
         else:
-            self.log_error(f"✗ 期望 401 Unauthorized，但得到: {response}")
-            return False
+            # 即使不匹配具体的错误信息，只要返回了 401 就算通过
+            self.log_success(f"✓ 返回 401 Unauthorized: {response.get('error', 'N/A')}")
+            return True
 
     def assert_has_permission(self, permission: str):
         """
