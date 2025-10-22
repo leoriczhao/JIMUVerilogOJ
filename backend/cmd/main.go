@@ -77,6 +77,7 @@ func main() {
 		{
 			admin.GET("/whoami", app.Handlers.AdminHandler.WhoAmI)
 			admin.GET("/stats", app.Handlers.AdminHandler.Stats)
+			admin.PUT("/users/:id/role", app.Handlers.AdminHandler.UpdateUserRole)
 		}
 
 		// 用户相关路由

@@ -22,24 +22,66 @@ class ProblemTester(BaseAPITester):
             "username": self.generate_unique_name("problemtester"),
             "email": f"{self.generate_unique_name('test')}@example.com",
             "password": "password123",
-            "nickname": "题目测试员",
-            "role": "admin"
+            "nickname": "题目测试员"
         }
-        
+
+        # 注册用户（将获得默认的student角色）
         reg_response = self.make_request("POST", "/users/register", data=test_user, expect_status=201)
-        if not reg_response:
+        if not reg_response or "user" not in reg_response:
             return False
-            
+
+        user_id = reg_response["user"]["id"]
+
+        # 登录获取token
         login_data = {
             "username": test_user["username"],
             "password": test_user["password"]
         }
         login_response = self.make_request("POST", "/users/login", data=login_data, expect_status=200)
-        
-        if login_response and "token" in login_response:
-            self.set_token(login_response["token"])
-            return True
-        return False
+
+        if not login_response or "token" not in login_response:
+            return False
+
+        # 暂存token
+        student_token = login_response["token"]
+
+        # 使用管理员账号来提升权限
+        # 注意：这里假设有一个预先存在的管理员账号，或者需要手动创建
+        # 为了测试，我们可以尝试用默认管理员登录，如果失败则继续以student身份
+        admin_login = {
+            "username": "admin",
+            "password": "admin123"
+        }
+        admin_response = self.make_request("POST", "/users/login", data=admin_login, expect_status=200)
+
+        if admin_response and "token" in admin_response:
+            # 使用管理员token
+            self.set_token(admin_response["token"])
+
+            # 提升测试用户为admin角色
+            update_role = self.make_request(
+                "PUT",
+                f"/admin/users/{user_id}/role",
+                data={"role": "admin"},
+                expect_status=200
+            )
+
+            if not update_role:
+                self.log_warning("无法提升用户角色，将以student身份继续测试")
+                self.set_token(student_token)
+            else:
+                # 重新登录以获取更新后角色的token
+                login_response = self.make_request("POST", "/users/login", data=login_data, expect_status=200)
+                if login_response and "token" in login_response:
+                    self.set_token(login_response["token"])
+                else:
+                    return False
+        else:
+            # 无管理员账号，以student身份继续
+            self.log_warning("无管理员账号，将以student身份继续测试（部分测试可能失败）")
+            self.set_token(student_token)
+
+        return True
 
     def test_list_problems(self):
         """测试获取题目列表"""
