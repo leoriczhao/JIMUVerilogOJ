@@ -254,7 +254,7 @@ class OpenAPIValidator:
                     ref_file = (base_path.parent / file_ref).resolve()
 
                     # 从预加载的文档中获取
-                        ref_document = schema_documents.get(ref_file.resolve())
+                    ref_document = schema_documents.get(ref_file)
                     if ref_document:
                         # 解析JSON路径
                         path_parts = json_path.strip('/').split('/')
