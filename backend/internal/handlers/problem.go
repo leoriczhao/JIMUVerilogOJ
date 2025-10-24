@@ -81,7 +81,7 @@ func (h *ProblemHandler) ListProblems(c *gin.Context) {
 	}
 
 	// 转换为DTO响应
-	var problemResponses []dto.ProblemResponse
+	problemResponses := make([]dto.ProblemResponse, 0, len(problems))
 	for _, problem := range problems {
 		problemResponses = append(problemResponses, dto.ProblemDomainToResponse(&problem))
 	}
@@ -409,7 +409,7 @@ func (h *ProblemHandler) GetTestCases(c *gin.Context) {
 	}
 
 	// 转换为DTO响应
-	var testCaseResponses []dto.TestCaseResponse
+	testCaseResponses := make([]dto.TestCaseResponse, 0, len(testCases))
 	for _, tc := range testCases {
 		// 只有作者和管理员可以看到所有测试用例，其他用户只能看样例
 		if !isAuthor && !isAdmin && !tc.IsSample {

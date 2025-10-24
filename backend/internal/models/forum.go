@@ -8,7 +8,7 @@ import (
 
 // ForumPost 论坛帖子模型
 type ForumPost struct {
-	ID        uint           `json:"id" gorm:"primarykey"`
+	ID        uint           `json:"id" gorm:"primaryKey"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
@@ -38,7 +38,7 @@ type ForumPost struct {
 
 // ForumReply 论坛回复模型
 type ForumReply struct {
-	ID        uint           `json:"id" gorm:"primarykey"`
+	ID        uint           `json:"id" gorm:"primaryKey"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
@@ -62,17 +62,14 @@ type ForumReply struct {
 
 // ForumLike 点赞记录模型
 type ForumLike struct {
-	ID        uint           `json:"id" gorm:"primarykey"`
+	ID        uint           `json:"id" gorm:"primaryKey"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 
-	UserID uint `json:"user_id" gorm:"not null"`
-	User   User `json:"user" gorm:"foreignKey:UserID"`
+	UserID uint `json:"user_id" gorm:"not null;index"`
 
-	// 点赞目标（帖子或回复）
-	PostID  *uint       `json:"post_id"`
-	Post    *ForumPost  `json:"post" gorm:"foreignKey:PostID"`
-	ReplyID *uint       `json:"reply_id"`
-	Reply   *ForumReply `json:"reply" gorm:"foreignKey:ReplyID"`
+	// 点赞目标（帖子或回复）- 只保留ID，不添加关联以避免GORM AutoMigrate问题
+	PostID  *uint `json:"post_id"`
+	ReplyID *uint `json:"reply_id"`
 }

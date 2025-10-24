@@ -73,7 +73,6 @@ class ForumTester(BaseAPITester):
             "GET", "/forum/posts",
             expect_status=200,
             module="forum",
-            validate_schema=False  # forum 可能没有完整的 OpenAPI schema
         )
 
         if response and "posts" in response:
@@ -102,7 +101,6 @@ class ForumTester(BaseAPITester):
             data=post_data,
             expect_status=201,
             module="forum",
-            validate_schema=False
         )
 
         if response and "post" in response:
@@ -124,7 +122,6 @@ class ForumTester(BaseAPITester):
             "GET", f"/forum/posts/{self.student_post_id}",
             expect_status=200,
             module="forum",
-            validate_schema=False
         )
 
         if response and "post" in response:
@@ -151,7 +148,6 @@ class ForumTester(BaseAPITester):
             data=reply_data,
             expect_status=201,
             module="forum",
-            validate_schema=False
         )
 
         if response and "reply" in response:
@@ -172,7 +168,6 @@ class ForumTester(BaseAPITester):
             "GET", f"/forum/posts/{self.student_post_id}/replies",
             expect_status=200,
             module="forum",
-            validate_schema=False
         )
 
         if response and "replies" in response:
@@ -192,7 +187,7 @@ class ForumTester(BaseAPITester):
             self.login_as('teacher')
             post_data = {
                 "title": f"教师临时帖子_{self.generate_unique_name()}",
-                "content": "用于测试学生权限",
+                "content": "这是一个用于测试学生权限的临时帖子",  # 至少10个字符
                 "category": "测试"
             }
             response = self.make_request(
@@ -200,7 +195,6 @@ class ForumTester(BaseAPITester):
                 data=post_data,
                 expect_status=201,
                 module="forum",
-                validate_schema=False
             )
             if response and "post" in response:
                 self.teacher_post_id = response["post"].get("id")
@@ -218,7 +212,6 @@ class ForumTester(BaseAPITester):
             "DELETE", f"/forum/posts/{self.teacher_post_id}",
             expect_status=403,
             module="forum",
-            validate_schema=False
         )
 
         return self.assert_forbidden(response)
@@ -239,7 +232,6 @@ class ForumTester(BaseAPITester):
             data=post_data,
             expect_status=201,
             module="forum",
-            validate_schema=False
         )
 
         if response and "post" in response:
@@ -268,7 +260,6 @@ class ForumTester(BaseAPITester):
             data=update_data,
             expect_status=200,
             module="forum",
-            validate_schema=False
         )
 
         return response is not None
@@ -289,7 +280,6 @@ class ForumTester(BaseAPITester):
             data=reply_data,
             expect_status=201,
             module="forum",
-            validate_schema=False
         )
 
         if response and "reply" in response:
@@ -316,7 +306,6 @@ class ForumTester(BaseAPITester):
             data=update_data,
             expect_status=200,
             module="forum",
-            validate_schema=False
         )
 
         return response is not None
@@ -332,7 +321,6 @@ class ForumTester(BaseAPITester):
             "DELETE", f"/forum/posts/{self.teacher_post_id}",
             expect_status=200,
             module="forum",
-            validate_schema=False
         )
 
         if response:
@@ -362,7 +350,6 @@ class ForumTester(BaseAPITester):
             data=post_data,
             expect_status=401,
             module="forum",
-            validate_schema=False
         )
 
         return self.assert_unauthorized(response)
@@ -384,7 +371,6 @@ class ForumTester(BaseAPITester):
             data=reply_data,
             expect_status=401,
             module="forum",
-            validate_schema=False
         )
 
         return self.assert_unauthorized(response)

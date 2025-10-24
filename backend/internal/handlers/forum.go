@@ -59,7 +59,7 @@ func (h *ForumHandler) ListPosts(c *gin.Context) {
 	}
 
 	// 转换为DTO响应
-	var postResponses []dto.ForumPostResponse
+	postResponses := make([]dto.ForumPostResponse, 0, len(posts))
 	for _, post := range posts {
 		postResponses = append(postResponses, dto.ForumPostDomainToResponse(&post))
 	}
@@ -257,7 +257,7 @@ func (h *ForumHandler) ListReplies(c *gin.Context) {
 		return
 	}
 	// 转换为DTO响应
-	var replyResponses []dto.ForumReplyResponse
+	replyResponses := make([]dto.ForumReplyResponse, 0, len(replies))
 	for _, reply := range replies {
 		replyResponses = append(replyResponses, dto.ForumReplyDomainToResponse(&reply))
 	}

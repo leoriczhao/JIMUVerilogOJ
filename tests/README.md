@@ -619,6 +619,93 @@ curl -X PUT http://localhost:8080/api/v1/admin/users/1/role \
 - ✅ 401 Unauthorized 边界测试
 - ✅ 403 Forbidden 边界测试
 
+## 📊 Schema 验证统计功能
+
+### 功能说明
+
+测试框架现在会自动追踪和统计 OpenAPI Schema 验证结果，分为两类：
+
+1. **验证失败** (`validation_errors`): API 响应数据与 Schema 定义不匹配
+2. **Schema 未定义** (`validation_skipped`): API 端点缺少 OpenAPI Schema 定义
+
+### 单模块测试输出示例
+
+运行单个模块测试时，会在结果总结中显示 Schema 验证统计：
+
+```bash
+$ uv run python test_problem.py
+
+ 📋 Schema验证统计 📋
+验证通过: 12
+验证失败: 0
+跳过验证(未找到schema): 4
+
+ ℹ️  Schema未定义 (4) ℹ️
+以下API端点缺少OpenAPI Schema定义：
+  1. PUT /problems/25 (状态码: 200)
+  2. POST /problems/25/testcases (状态码: 201)
+  3. DELETE /problems/25 (状态码: 200)
+```
+
+### 综合测试汇总输出示例
+
+运行完整测试套件时，会汇总所有模块的 Schema 问题：
+
+```bash
+$ uv run python test_all.py
+
+ 📋 OpenAPI Schema验证汇总 📋
+================================================================================
+Schema验证错误: 0
+Schema未定义: 4
+
+ℹ️  缺少Schema定义的API端点：
+  1. [problem] PUT /problems/23 (状态码: 200)
+  2. [problem] POST /problems/23/testcases (状态码: 201)
+  3. [forum] POST /forum/posts (状态码: 201)
+
+💡 建议: 在 docs/openapi/ 目录下补充这些API的Schema定义
+```
+
+### 验证失败示例
+
+如果 API 响应与 Schema 不匹配，会显示详细错误：
+
+```bash
+ ⚠️  Schema验证错误 (2) ⚠️
+
+错误 #1:
+  模块: problem
+  请求: GET /problems
+  状态码: 200
+  详情: Schema验证失败:
+  - problems: None is not of type 'array'
+```
+
+### 优势
+
+- ✅ **分类清晰**: 区分验证失败和缺少定义两种情况
+- ✅ **去重显示**: 避免重复显示相同的未定义 Schema
+- ✅ **详细信息**: 提供模块名、HTTP方法、端点和状态码
+- ✅ **实用建议**: 提示开发者补充缺失的 Schema 定义
+- ✅ **不影响测试**: Schema 问题仅作为信息展示，不导致测试失败
+
+### 如何修复
+
+#### 修复验证失败
+
+1. 检查 API 响应格式是否正确
+2. 更新后端代码确保返回正确的数据结构
+3. 或更新 OpenAPI Schema 定义以匹配实际响应
+
+#### 补充缺失的 Schema
+
+1. 在 `docs/openapi/` 目录找到相应的模块文件
+2. 添加缺失的 endpoint 和响应定义
+3. 参考现有的 Schema 定义格式
+
+更多详情请参考 [CHANGELOG.md](./CHANGELOG.md)。
+
 ## 🤝 贡献指南
 
 欢迎提交 Issue 和 Pull Request 来改进测试套件！

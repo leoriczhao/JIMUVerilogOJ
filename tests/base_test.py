@@ -29,7 +29,8 @@ class BaseAPITester:
         self.user_id = None
         self.enable_schema_validation = enable_schema_validation
         self.validator = get_validator() if enable_schema_validation else None
-        self.validation_errors = []  # 记录所有验证错误
+        self.validation_errors = []  # 记录验证失败的情况
+        self.validation_skipped = []  # 记录跳过验证的情况（schema未找到）
 
         # 新增：用户池和角色管理
         self.user_pool = None  # 用户池实例
@@ -141,6 +142,14 @@ class BaseAPITester:
         if is_valid:
             if error_msg:  # 如果有提示信息（如schema未找到）
                 self.log_warning(f"Schema验证跳过: {error_msg}")
+                # 记录跳过的验证
+                self.validation_skipped.append({
+                    'module': module,
+                    'method': method,
+                    'endpoint': endpoint,
+                    'status_code': status_code,
+                    'reason': error_msg
+                })
             else:
                 self.log_success("✓ Schema验证通过")
         else:
@@ -195,6 +204,24 @@ class BaseAPITester:
         print(f"失败数: {Fore.RED}{total - passed}{Style.RESET_ALL}")
         print(f"通过率: {Fore.CYAN}{passed/total*100:.1f}%{Style.RESET_ALL}")
 
+        # 打印Schema验证统计
+        print(f"\n{Back.BLUE}{Fore.WHITE} 📋 Schema验证统计 📋 {Style.RESET_ALL}")
+        total_errors = len(self.validation_errors)
+        total_skipped = len(self.validation_skipped)
+        total_validated = total_errors + total_skipped
+
+        if total_validated > 0 or self.enable_schema_validation:
+            # 计算通过的数量 = 总验证数 - 错误数 - 跳过数
+            # 但需要知道总共进行了多少次验证尝试
+            # 由于我们无法准确知道验证通过的数量，只显示错误和跳过
+            if total_errors > 0 or total_skipped > 0:
+                print(f"验证失败: {Fore.RED}{total_errors}{Style.RESET_ALL}")
+                print(f"跳过验证(未找到schema): {Fore.YELLOW}{total_skipped}{Style.RESET_ALL}")
+            else:
+                print(f"{Fore.GREEN}所有Schema验证通过{Style.RESET_ALL}")
+        else:
+            print(f"{Fore.CYAN}未启用Schema验证{Style.RESET_ALL}")
+
         # 打印Schema验证错误摘要
         if self.validation_errors:
             print(f"\n{Back.RED}{Fore.WHITE} ⚠️  Schema验证错误 ({len(self.validation_errors)}) ⚠️  {Style.RESET_ALL}")
@@ -204,6 +231,24 @@ class BaseAPITester:
                 print(f"  请求: {error['method']} {error['endpoint']}")
                 print(f"  状态码: {error['status_code']}")
                 print(f"  详情: {error['error']}")
+
+        # 打印Schema跳过摘要（仅显示前5个）
+        if self.validation_skipped:
+            print(f"\n{Back.YELLOW}{Fore.BLACK} ℹ️  Schema未定义 ({len(self.validation_skipped)}) ℹ️  {Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}以下API端点缺少OpenAPI Schema定义：{Style.RESET_ALL}")
+            # 去重并按endpoint分组
+            unique_skipped = {}
+            for skip in self.validation_skipped:
+                key = f"{skip['method']} {skip['endpoint']} {skip['status_code']}"
+                if key not in unique_skipped:
+                    unique_skipped[key] = skip
+
+            # 只显示前10个
+            for idx, (key, skip) in enumerate(list(unique_skipped.items())[:10], 1):
+                print(f"  {idx}. {skip['method']} {skip['endpoint']} (状态码: {skip['status_code']})")
+
+            if len(unique_skipped) > 10:
+                print(f"  ... 还有 {len(unique_skipped) - 10} 个未定义的schema")
 
         if passed == total:
             if self.validation_errors:

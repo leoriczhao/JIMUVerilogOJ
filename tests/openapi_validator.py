@@ -327,10 +327,14 @@ class OpenAPIValidator:
         clean_endpoint = endpoint.replace('/api/v1', '')
         schema_key = f"{method.upper()} {clean_endpoint} {status_code}"
 
-        if schema_key not in self.schemas[module]:
-            return True, f"未找到schema: {schema_key}"
-
-        schema = self.schemas[module][schema_key]
+        # 首先尝试精确匹配
+        if schema_key in self.schemas[module]:
+            schema = self.schemas[module][schema_key]
+        else:
+            # 尝试路径参数匹配
+            schema = self._find_matching_schema(module, method.upper(), clean_endpoint, status_code)
+            if schema is None:
+                return True, f"未找到schema: {schema_key}"
 
         try:
             # 创建一个自定义的RefResolver来处理文件引用
@@ -349,6 +353,53 @@ class OpenAPIValidator:
 
         except Exception as e:
             return False, f"验证过程出错: {str(e)}"
+
+    def _find_matching_schema(self, module: str, method: str, endpoint: str, status_code: int) -> Optional[Dict]:
+        """
+        查找匹配的schema，支持路径参数匹配
+        例如: /problems/28 应该匹配 /problems/{id}
+
+        Args:
+            module: 模块名称
+            method: HTTP方法
+            endpoint: API端点
+            status_code: 状态码
+
+        Returns:
+            匹配的schema字典，如果未找到返回None
+        """
+        import re
+
+        # 遍历该模块的所有schema key
+        for schema_key in self.schemas[module].keys():
+            # 解析 schema_key: "GET /problems/{id} 200"
+            parts = schema_key.rsplit(' ', 1)
+            if len(parts) != 2:
+                continue
+
+            method_path, key_status = parts
+            method_path_parts = method_path.split(' ', 1)
+            if len(method_path_parts) != 2:
+                continue
+
+            key_method, key_path = method_path_parts
+
+            # 检查方法和状态码是否匹配
+            if key_method != method or key_status != str(status_code):
+                continue
+
+            # 将路径参数转换为正则表达式
+            # /problems/{id} -> /problems/[^/]+
+            # /problems/{id}/testcases -> /problems/[^/]+/testcases
+            pattern = re.escape(key_path)
+            pattern = re.sub(r'\\{[^}]+\\}', '[^/]+', pattern)
+            pattern = f'^{pattern}$'
+
+            # 尝试匹配
+            if re.match(pattern, endpoint):
+                return self.schemas[module][schema_key]
+
+        return None
 
     def validate_request(self, module: str, operation_id: str, request_data: Any) -> Tuple[bool, Optional[str]]:
         """

@@ -7,9 +7,11 @@ import (
 	"verilog-oj/backend/internal/config"
 	"verilog-oj/backend/internal/middleware"
 	"verilog-oj/backend/internal/models"
+	"verilog-oj/backend/internal/seed"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,6 +35,11 @@ func main() {
 	// 自动迁移数据库表
 	if errMigrate := autoMigrate(db); errMigrate != nil {
 		log.Fatal("Failed to migrate database:", errMigrate)
+	}
+
+	// 初始化管理员账户
+	if err := initializeAdmin(db, cfg); err != nil {
+		log.Printf("Warning: Failed to initialize admin: %v", err)
 	}
 
 	// 使用 wire 初始化应用
@@ -291,7 +298,10 @@ func initDB(cfg *config.Config) (*gorm.DB, error) {
 		cfg.Database.SSLMode,
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger:                                   logger.Default.LogMode(logger.Info), // Enable detailed SQL logging
+		DisableForeignKeyConstraintWhenMigrating: true,                                // Disable foreign key constraints
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -301,6 +311,8 @@ func initDB(cfg *config.Config) (*gorm.DB, error) {
 
 // autoMigrate 自动迁移数据库表
 func autoMigrate(db *gorm.DB) error {
+	log.Println("Starting database migration...")
+
 	return db.AutoMigrate(
 		&models.User{},
 		&models.Problem{},
@@ -311,4 +323,27 @@ func autoMigrate(db *gorm.DB) error {
 		&models.ForumLike{},
 		&models.News{},
 	)
+}
+
+// initializeAdmin 初始化管理员账户
+func initializeAdmin(db *gorm.DB, cfg *config.Config) error {
+	// 开发模式：创建默认管理员 (admin/admin123) 用于 E2E 测试
+	if cfg.Server.Mode == "debug" {
+		log.Println("Development mode: Creating default admin user for testing...")
+		return seed.SeedDefaultAdmin(db)
+	}
+
+	// 生产模式：如果配置了自定义管理员，则创建
+	if cfg.InitAdmin.Username != "" {
+		log.Println("Production mode: Creating custom admin user...")
+		return seed.SeedCustomAdmin(
+			db,
+			cfg.InitAdmin.Username,
+			cfg.InitAdmin.Email,
+			cfg.InitAdmin.Password,
+		)
+	}
+
+	log.Println("No admin initialization required")
+	return nil
 }

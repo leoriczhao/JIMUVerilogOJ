@@ -120,7 +120,6 @@ class SubmissionTester(BaseAPITester):
             "GET", "/submissions",
             expect_status=200,
             module="submission",
-            validate_schema=False
         )
 
         if response and "submissions" in response:
@@ -170,7 +169,6 @@ endmodule
             data=submission_data,
             expect_status=201,
             module="submission",
-            validate_schema=False
         )
 
         if response and "submission" in response:
@@ -192,7 +190,6 @@ endmodule
             "GET", f"/submissions/{self.student_submission_id}",
             expect_status=200,
             module="submission",
-            validate_schema=False
         )
 
         if response and "submission" in response:
@@ -211,7 +208,6 @@ endmodule
             "GET", "/submissions/user",
             expect_status=200,
             module="submission",
-            validate_schema=False
         )
 
         if response and "submissions" in response:
@@ -236,7 +232,6 @@ endmodule
             "DELETE", f"/submissions/{self.student_submission_id}",
             expect_status=403,
             module="submission",
-            validate_schema=False
         )
 
         # 如果返回 403，说明权限控制正确
@@ -278,7 +273,6 @@ endmodule
             data=submission_data,
             expect_status=201,
             module="submission",
-            validate_schema=False
         )
 
         if response and "submission" in response:
@@ -296,7 +290,6 @@ endmodule
             "GET", "/submissions/stats",
             expect_status=200,
             module="submission",
-            validate_schema=False
         )
 
         if response:
@@ -317,7 +310,6 @@ endmodule
             "DELETE", f"/submissions/{self.student_submission_id}",
             expect_status=200,
             module="submission",
-            validate_schema=False
         )
 
         if response:
@@ -351,7 +343,6 @@ endmodule
             data=submission_data,
             expect_status=401,
             module="submission",
-            validate_schema=False
         )
 
         return self.assert_unauthorized(response)

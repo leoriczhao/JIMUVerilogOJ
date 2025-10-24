@@ -19,7 +19,7 @@ components:
           type: string
         role:
           type: string
-          enum: [student, teacher, admin, super_admin]
+          enum: [student, teacher, admin, super_admin, ""]
         solved:
           type: integer
         submitted:

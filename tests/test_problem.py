@@ -176,9 +176,8 @@ class ProblemTester(BaseAPITester):
 
         testcase_data = {
             "input": "test input",
-            "expected_output": "test output",
-            "is_sample": True,
-            "score": 10
+            "output": "test output",  # 修正字段名：expected_output -> output
+            "is_sample": True
         }
 
         response = self.make_request(
