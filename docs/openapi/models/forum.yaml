@@ -12,9 +12,11 @@ components:
         category:
           type: string
         tags:
-          type: array
-          items:
-            type: string
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
         view_count:
           type: integer
         reply_count:
@@ -28,7 +30,7 @@ components:
         is_public:
           type: boolean
         user:
-          $ref: '../models/user.yaml#/components/schemas/User'
+          $ref: './user.yaml#/components/schemas/User'
         created_at:
           type: string
           format: date-time
@@ -64,9 +66,11 @@ components:
         category:
           type: string
         tags:
-          type: array
-          items:
-            type: string
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
 
     ForumPostCreateResponse:
       type: object
@@ -86,9 +90,11 @@ components:
         category:
           type: string
         tags:
-          type: array
-          items:
-            type: string
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: "null"
         is_locked:
           type: boolean
 
@@ -122,10 +128,11 @@ components:
         post_id:
           type: integer
         user:
-          $ref: '../models/user.yaml#/components/schemas/User'
+          $ref: './user.yaml#/components/schemas/User'
         parent_id:
-          type: integer
-          nullable: true
+          oneOf:
+            - type: integer
+            - type: "null"
         created_at:
           type: string
           format: date-time
@@ -155,8 +162,9 @@ components:
         content:
           type: string
         parent_id:
-          type: integer
-          nullable: true
+          oneOf:
+            - type: integer
+            - type: "null"
 
     ForumReplyCreateResponse:
       type: object

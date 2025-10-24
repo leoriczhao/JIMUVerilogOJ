@@ -8,7 +8,7 @@ import (
 
 // Submission 提交记录模型
 type Submission struct {
-	ID        uint           `json:"id" gorm:"primarykey"`
+	ID        uint           `json:"id" gorm:"primaryKey"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`

@@ -78,7 +78,7 @@ func (h *SubmissionHandler) ListSubmissions(c *gin.Context) {
 	}
 
 	// 转换为DTO响应
-	var submissionResponses []dto.SubmissionResponse
+	submissionResponses := make([]dto.SubmissionResponse, 0, len(response.Submissions))
 	for _, submission := range response.Submissions {
 		submissionResponses = append(submissionResponses, dto.SubmissionDomainToResponse(&submission))
 	}
@@ -194,7 +194,7 @@ func (h *SubmissionHandler) GetUserSubmissions(c *gin.Context) {
 	}
 
 	// 转换为DTO响应
-	var submissionResponses []dto.SubmissionResponse
+	submissionResponses := make([]dto.SubmissionResponse, 0, len(response.Submissions))
 	for _, submission := range response.Submissions {
 		submissionResponses = append(submissionResponses, dto.SubmissionDomainToResponse(&submission))
 	}
@@ -245,7 +245,7 @@ func (h *SubmissionHandler) GetProblemSubmissions(c *gin.Context) {
 	}
 
 	// 转换为DTO响应
-	var submissionResponses []dto.SubmissionResponse
+	submissionResponses := make([]dto.SubmissionResponse, 0, len(response.Submissions))
 	for _, submission := range response.Submissions {
 		submissionResponses = append(submissionResponses, dto.SubmissionDomainToResponse(&submission))
 	}

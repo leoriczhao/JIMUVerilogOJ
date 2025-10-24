@@ -8,7 +8,7 @@ import (
 
 // Problem 题目模型
 type Problem struct {
-	ID        uint           `json:"id" gorm:"primarykey"`
+	ID        uint           `json:"id" gorm:"primaryKey"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
@@ -40,7 +40,7 @@ type Problem struct {
 
 // TestCase 测试用例模型
 type TestCase struct {
-	ID        uint           `json:"id" gorm:"primarykey"`
+	ID        uint           `json:"id" gorm:"primaryKey"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`

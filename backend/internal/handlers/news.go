@@ -69,7 +69,7 @@ func (h *NewsHandler) ListNews(c *gin.Context) {
 	}
 
 	// 转换为DTO响应
-	var newsResponses []dto.NewsResponse
+	newsResponses := make([]dto.NewsResponse, 0, len(news))
 	for _, newsItem := range news {
 		newsResponses = append(newsResponses, dto.NewsDomainToResponse(&newsItem))
 	}

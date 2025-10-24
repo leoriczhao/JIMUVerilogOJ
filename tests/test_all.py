@@ -23,11 +23,14 @@ init(autoreset=True)
 
 class ComprehensiveAPITester:
     """综合API测试器"""
-    
+
     def __init__(self, run_individual_summaries=False):
         self.run_individual_summaries = run_individual_summaries
         self.start_time = None
         self.end_time = None
+        # 收集所有模块的schema验证问题
+        self.all_validation_errors = []
+        self.all_validation_skipped = []
         
     def log_success(self, message: str):
         """成功日志"""
@@ -64,52 +67,59 @@ class ComprehensiveAPITester:
         """运行用户管理测试"""
         print(f"\n{Back.GREEN}{Fore.WHITE} 👤 用户管理测试模块 {Style.RESET_ALL}")
         tester = UserTester()
-        test_results = [
-            ("用户注册", tester.test_user_registration()),
-            ("用户登录", tester.test_user_login()),
-            ("获取用户信息", tester.test_get_profile()),
-            ("更新用户信息", tester.test_update_profile()),
-            ("重复注册检查", tester.test_duplicate_registration()),
-            ("无效登录检查", tester.test_invalid_login()),
-            ("未授权访问检查", tester.test_unauthorized_access()),
-        ]
-        success = all(result for _, result in test_results)
-        return "用户管理模块", success
+        # 使用 UserTester 的 run_tests 方法，它会正确调用所有测试
+        success = tester.run_tests()
+        # 收集schema验证问题
+        self.all_validation_errors.extend(tester.validation_errors)
+        self.all_validation_skipped.extend(tester.validation_skipped)
+        return "user模块", success
 
     def run_problem_tests(self) -> Tuple[str, bool]:
         """运行题目管理测试"""
         print(f"\n{Back.MAGENTA}{Fore.WHITE} 📚 题目管理测试模块 {Style.RESET_ALL}")
         tester = ProblemTester()
-        
+
         # The ProblemTester's run_tests method has the correct sequential logic.
         success = tester.run_tests()
+        # 收集schema验证问题
+        self.all_validation_errors.extend(tester.validation_errors)
+        self.all_validation_skipped.extend(tester.validation_skipped)
         return "题目管理模块", success
 
     def run_submission_tests(self) -> Tuple[str, bool]:
         """运行提交管理测试"""
         print(f"\n{Back.YELLOW}{Fore.BLACK} 📝 提交管理测试模块 {Style.RESET_ALL}")
         tester = SubmissionTester()
-        
+
         # The SubmissionTester's run_tests method has the correct sequential logic.
         success = tester.run_tests()
+        # 收集schema验证问题
+        self.all_validation_errors.extend(tester.validation_errors)
+        self.all_validation_skipped.extend(tester.validation_skipped)
         return "提交管理模块", success
 
     def run_forum_tests(self) -> Tuple[str, bool]:
         """运行论坛管理测试"""
         print(f"\n{Back.CYAN}{Fore.WHITE} 💬 论坛管理测试模块 {Style.RESET_ALL}")
         tester = ForumTester()
-        
+
         # The ForumTester's run_tests method has the correct sequential logic.
         success = tester.run_tests()
+        # 收集schema验证问题
+        self.all_validation_errors.extend(tester.validation_errors)
+        self.all_validation_skipped.extend(tester.validation_skipped)
         return "论坛管理模块", success
 
     def run_news_tests(self) -> Tuple[str, bool]:
         """运行新闻管理测试"""
         print(f"\n{Back.LIGHTGREEN_EX}{Fore.BLACK} 📰 新闻管理测试模块 {Style.RESET_ALL}")
         tester = NewsTester()
-        
+
         # The NewsTester's run_tests method has the correct sequential logic.
         success = tester.run_tests()
+        # 收集schema验证问题
+        self.all_validation_errors.extend(tester.validation_errors)
+        self.all_validation_skipped.extend(tester.validation_skipped)
         return "新闻管理模块", success
 
     def print_comprehensive_summary(self, module_results: List[Tuple[str, bool]]):
@@ -138,7 +148,10 @@ class ComprehensiveAPITester:
         if self.start_time and self.end_time:
             duration = self.end_time - self.start_time
             print(f"测试耗时: {Fore.YELLOW}{duration:.2f}秒{Style.RESET_ALL}")
-        
+
+        # Schema验证统计
+        self._print_schema_summary()
+
         if passed_modules == total_modules:
             print(f"\n{Fore.GREEN}🎉 所有模块测试通过！Verilog OJ API 完全正常！{Style.RESET_ALL}")
             print(f"{Fore.GREEN}🚀 系统已准备好投入使用！{Style.RESET_ALL}")
@@ -148,6 +161,48 @@ class ComprehensiveAPITester:
             failed_modules = [name for name, result in module_results if not result]
             print(f"{Fore.RED}失败的模块: {', '.join(failed_modules)}{Style.RESET_ALL}")
             return False
+
+    def _print_schema_summary(self):
+        """打印Schema验证汇总"""
+        if not self.all_validation_errors and not self.all_validation_skipped:
+            return
+
+        print(f"\n{Back.BLUE}{Fore.WHITE} 📋 OpenAPI Schema验证汇总 📋 {Style.RESET_ALL}")
+        print("=" * 80)
+
+        # 统计
+        total_errors = len(self.all_validation_errors)
+        total_skipped = len(self.all_validation_skipped)
+
+        print(f"Schema验证错误: {Fore.RED}{total_errors}{Style.RESET_ALL}")
+        print(f"Schema未定义: {Fore.YELLOW}{total_skipped}{Style.RESET_ALL}")
+
+        # 显示验证错误
+        if self.all_validation_errors:
+            print(f"\n{Fore.RED}⚠️  Schema验证失败的API：{Style.RESET_ALL}")
+            for idx, error in enumerate(self.all_validation_errors[:5], 1):
+                print(f"  {idx}. [{error['module']}] {error['method']} {error['endpoint']} (状态码: {error['status_code']})")
+                print(f"     {Fore.RED}错误: {error['error'][:100]}...{Style.RESET_ALL}")
+            if total_errors > 5:
+                print(f"  ... 还有 {total_errors - 5} 个验证错误")
+
+        # 显示未定义schema的API
+        if self.all_validation_skipped:
+            print(f"\n{Fore.YELLOW}ℹ️  缺少Schema定义的API端点：{Style.RESET_ALL}")
+            # 去重
+            unique_skipped = {}
+            for skip in self.all_validation_skipped:
+                key = f"{skip['method']} {skip['endpoint']} {skip['status_code']}"
+                if key not in unique_skipped:
+                    unique_skipped[key] = skip
+
+            for idx, (key, skip) in enumerate(list(unique_skipped.items())[:10], 1):
+                print(f"  {idx}. [{skip['module']}] {skip['method']} {skip['endpoint']} (状态码: {skip['status_code']})")
+
+            if len(unique_skipped) > 10:
+                print(f"  ... 还有 {len(unique_skipped) - 10} 个未定义的schema")
+
+            print(f"\n{Fore.YELLOW}💡 建议: 在 docs/openapi/ 目录下补充这些API的Schema定义{Style.RESET_ALL}")
 
     def run_all_tests(self, modules_to_run=None):
         """运行所有测试"""

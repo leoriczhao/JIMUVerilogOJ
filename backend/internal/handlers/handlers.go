@@ -29,6 +29,6 @@ func NewHandlers(
 		SubmissionHandler: NewSubmissionHandler(submissionService),
 		ForumHandler:      NewForumHandler(forumService),
 		NewsHandler:       NewNewsHandler(newsService),
-		AdminHandler:      NewAdminHandler(adminService),
+		AdminHandler:      NewAdminHandler(adminService, userService),
 	}
 }

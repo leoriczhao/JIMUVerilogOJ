@@ -91,6 +91,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
+        '401':
+          description: 未认证 - 需要登录
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
         '403':
           description: 权限不足 - 需要 problem.create 权限
           content:
@@ -269,8 +275,20 @@ paths:
             application/json:
               schema:
                 $ref: './models/problem.yaml#/components/schemas/TestCaseAddResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
         '403':
           description: 权限不足 - 需要 testcase.create 权限或管理员角色
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+        '404':
+          description: 题目不存在
           content:
             application/json:
               schema:

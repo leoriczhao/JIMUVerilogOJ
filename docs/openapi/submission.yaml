@@ -94,6 +94,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
+        '401':
+          description: 未认证 - 需要登录
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
         '403':
           description: 权限不足 - 需要 submission.create 权限
           content:

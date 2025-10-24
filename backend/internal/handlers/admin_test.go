@@ -37,8 +37,10 @@ func TestAdminHandler_WhoAmI(t *testing.T) {
 	c.Set("username", "admin")
 	c.Set("role", "admin")
 
-	// The handler doesn't use the service for this method, so we can pass nil
-	handler := NewAdminHandler(nil)
+	// Create mock services (the WhoAmI method doesn't use them, but we need to pass them)
+	mockAdminService := &MockAdminService{}
+	mockUserService := &MockUserService{}
+	handler := NewAdminHandler(mockAdminService, mockUserService)
 
 	// Execute
 	handler.WhoAmI(c)
@@ -61,10 +63,11 @@ func TestAdminHandler_Stats(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		mockService := new(MockAdminService)
+		mockUserService := new(MockUserService)
 		expectedStats := &services.SystemStats{Users: 10, Problems: 20, Submissions: 30, JudgesOnline: 1}
 		mockService.On("GetSystemStats").Return(expectedStats, nil)
 
-		handler := NewAdminHandler(mockService)
+		handler := NewAdminHandler(mockService, mockUserService)
 
 		// Execute
 		handler.Stats(c)
@@ -85,9 +88,10 @@ func TestAdminHandler_Stats(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		mockService := new(MockAdminService)
+		mockUserService := new(MockUserService)
 		mockService.On("GetSystemStats").Return(nil, errors.New("db error"))
 
-		handler := NewAdminHandler(mockService)
+		handler := NewAdminHandler(mockService, mockUserService)
 
 		// Execute
 		handler.Stats(c)

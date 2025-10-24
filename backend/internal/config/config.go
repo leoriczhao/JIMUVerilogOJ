@@ -7,11 +7,12 @@ import (
 
 // Config 应用配置结构
 type Config struct {
-	Server   ServerConfig   `yaml:"server"`
-	Database DatabaseConfig `yaml:"database"`
-	Redis    RedisConfig    `yaml:"redis"`
-	JWT      JWTConfig      `yaml:"jwt"`
-	Queue    QueueConfig    `yaml:"queue"`
+	Server    ServerConfig    `yaml:"server"`
+	Database  DatabaseConfig  `yaml:"database"`
+	Redis     RedisConfig     `yaml:"redis"`
+	JWT       JWTConfig       `yaml:"jwt"`
+	Queue     QueueConfig     `yaml:"queue"`
+	InitAdmin InitAdminConfig `yaml:"init_admin"`
 }
 
 // ServerConfig 服务器配置
@@ -55,6 +56,13 @@ type QueueConfig struct {
 	QueueName string `yaml:"queue_name"`
 }
 
+// InitAdminConfig 初始管理员配置
+type InitAdminConfig struct {
+	Username string `yaml:"username"`
+	Email    string `yaml:"email"`
+	Password string `yaml:"password"`
+}
+
 // LoadConfig 加载配置
 func LoadConfig() *Config {
 	return &Config{
@@ -88,6 +96,11 @@ func LoadConfig() *Config {
 			Username:  getEnv("QUEUE_USERNAME", ""),
 			Password:  getEnv("QUEUE_PASSWORD", ""),
 			QueueName: getEnv("QUEUE_NAME", "judge_queue"),
+		},
+		InitAdmin: InitAdminConfig{
+			Username: getEnv("INIT_ADMIN_USERNAME", ""),
+			Email:    getEnv("INIT_ADMIN_EMAIL", ""),
+			Password: getEnv("INIT_ADMIN_PASSWORD", ""),
 		},
 	}
 }

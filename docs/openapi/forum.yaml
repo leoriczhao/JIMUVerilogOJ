@@ -86,6 +86,12 @@ paths:
             application/json:
               schema:
                 $ref: './models/common.yaml#/components/schemas/Error'
+        '401':
+          description: 未认证 - 需要登录
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
         '403':
           description: 权限不足 - 需要 forum.post.create 权限
           content:
@@ -262,6 +268,18 @@ paths:
             application/json:
               schema:
                 $ref: './models/forum.yaml#/components/schemas/ForumReplyCreateResponse'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
+        '401':
+          description: 未认证 - 需要登录
+          content:
+            application/json:
+              schema:
+                $ref: './models/common.yaml#/components/schemas/Error'
         '403':
           description: 权限不足 - 需要 forum.reply.create 权限
           content:
