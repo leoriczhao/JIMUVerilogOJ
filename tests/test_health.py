@@ -3,7 +3,7 @@
 健康检查测试模块
 测试API服务的基本健康状态
 """
-
+       
 from base_test import BaseAPITester, BASE_URL
 from colorama import Back
 import requests

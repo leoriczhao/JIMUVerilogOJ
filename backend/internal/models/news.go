@@ -8,7 +8,7 @@ import (
 
 // News represents a news article in the system.
 type News struct {
-	ID        uint           `json:"id" gorm:"primarykey"`
+	ID        uint           `json:"id" gorm:"primaryKey"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"` // Use json:"-" to hide from API output
